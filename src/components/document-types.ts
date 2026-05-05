@@ -17,6 +17,7 @@ export interface ProfessionalHeader {
   address?: string;
   website?: string;
   instagram?: string;
+  signatureUrl?: string;
 }
 
 export interface InfoBlock {
@@ -30,7 +31,7 @@ export interface DocumentSection {
 }
 
 export interface SignatureBlock {
-  professional: { name: string; crp: string; role: string };
+  professional: { name: string; crp: string; role: string; signatureUrl?: string };
   patient?: { name: string; role: string };
   guardian?: { name: string; role: string };
   city: string;
@@ -52,6 +53,7 @@ export interface RenderedDocument {
   primaryColor?: string;
   secondaryColor?: string;
   logoUrl?: string;
+  signatureUrl?: string;
   footerPrefs?: FooterPrefs;
 }
 

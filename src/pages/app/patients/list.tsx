@@ -1,19 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 import { useListPatients, useDeletePatient, type PatientBodyServiceType } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getListPatientsQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, MoreHorizontal, FileText, Edit, Trash, AlertCircle, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
+import { AppDatePicker, AppInput, AppSelect, SERVICE_TYPE_OPTIONS } from "@/components/app-form";
 
 function getServiceLabel(value?: string) {
   if (value === "online") return "Online";
@@ -25,6 +24,8 @@ function getServiceLabel(value?: string) {
 export default function PatientsList() {
   const [search, setSearch] = useState("");
   const [serviceType, setServiceType] = useState<PatientBodyServiceType | "all">("all");
+  const [createdFrom, setCreatedFrom] = useState("");
+  const [createdTo, setCreatedTo] = useState("");
   const [patientToDelete, setPatientToDelete] = useState<string | null>(null);
   
   const { data: patients, isLoading, isError } = useListPatients({
@@ -58,6 +59,15 @@ export default function PatientsList() {
     document.title = "Pacientes | DocusPsi";
   }, []);
 
+  const filteredPatients = useMemo(() => {
+    return (patients || []).filter((patient) => {
+      const createdAt = (patient as { createdAt?: string }).createdAt?.slice(0, 10);
+      if (createdFrom && createdAt && createdAt < createdFrom) return false;
+      if (createdTo && createdAt && createdAt > createdTo) return false;
+      return true;
+    });
+  }, [patients, createdFrom, createdTo]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -73,27 +83,24 @@ export default function PatientsList() {
         </Button>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1 sm:max-w-sm">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="relative min-w-0">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
+          <AppInput
             placeholder="Buscar por nome, CPF, e-mail ou telefone..."
             className="pl-8"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Select value={serviceType} onValueChange={(value) => setServiceType(value as PatientBodyServiceType | "all")}>
-          <SelectTrigger className="w-full sm:w-[220px]">
-            <SelectValue placeholder="Modalidade" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as modalidades</SelectItem>
-            <SelectItem value="online">Online</SelectItem>
-            <SelectItem value="presencial">Presencial</SelectItem>
-            <SelectItem value="hibrido">Híbrido</SelectItem>
-          </SelectContent>
-        </Select>
+        <AppSelect
+          value={serviceType}
+          onValueChange={(value) => setServiceType(value as PatientBodyServiceType | "all")}
+          placeholder="Modalidade"
+          options={[{ label: "Todas as modalidades", value: "all" }, ...SERVICE_TYPE_OPTIONS]}
+        />
+        <AppDatePicker value={createdFrom} onChange={setCreatedFrom} placeholder="Cadastro de" optional />
+        <AppDatePicker value={createdTo} onChange={setCreatedTo} placeholder="Cadastro até" optional />
       </div>
 
       {isError && (
@@ -108,7 +115,7 @@ export default function PatientsList() {
         </Card>
       )}
 
-      <div className="border rounded-lg bg-card">
+      <div className="overflow-hidden rounded-2xl border border-[#DDD6C7] bg-white shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>
@@ -130,7 +137,7 @@ export default function PatientsList() {
                   <TableCell><Skeleton className="h-8 w-8 rounded-md" /></TableCell>
                 </TableRow>
               ))
-            ) : patients?.length === 0 ? (
+            ) : filteredPatients.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
                   <div className="flex flex-col items-center justify-center gap-3 py-8">
@@ -148,7 +155,7 @@ export default function PatientsList() {
                 </TableCell>
               </TableRow>
             ) : (
-              patients?.map((patient) => (
+              filteredPatients.map((patient) => (
                 <TableRow key={patient.id}>
                   <TableCell className="font-medium">
                     <Link href={`/app/patients/${patient.id}`} className="hover:underline text-primary">

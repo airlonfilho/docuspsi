@@ -16,6 +16,7 @@ import { useDownloadPdf } from "@/hooks/use-download-pdf";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { handleBillingError } from "@/lib/billing-errors";
 
 function getStatusBadge(status: string) {
   switch (status) {
@@ -53,8 +54,8 @@ export default function DocumentView() {
           toast({ title: "Documento finalizado com sucesso" });
           queryClient.invalidateQueries({ queryKey: getGetDocumentQueryKey(docId) });
         },
-        onError: () => {
-          toast({ variant: "destructive", title: "Erro ao finalizar documento", description: "Tente novamente em instantes." });
+        onError: (error: unknown) => {
+          handleBillingError(error, toast, "Erro ao finalizar documento", "Tente novamente em instantes.");
         },
       }
     );
@@ -106,6 +107,9 @@ export default function DocumentView() {
   }
 
   const rendered = parseRenderedContent(doc.renderedContent);
+  const hasRenderedDocument = Boolean(rendered || doc.renderedContent);
+  const canUseDocument = hasRenderedDocument && doc.status !== "revogado";
+  const needsPreviewGeneration = !hasRenderedDocument && doc.status === "rascunho";
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -128,13 +132,13 @@ export default function DocumentView() {
         </div>
 
         <div className="flex gap-2 flex-wrap">
-          {doc.status === 'rascunho' && (
+          {needsPreviewGeneration && (
             <Button onClick={handleGenerate} disabled={generateMutation.isPending}>
-              {generateMutation.isPending ? "Finalizando..." : "Finalizar Documento"}
+              {generateMutation.isPending ? "Gerando prévia..." : "Gerar prévia"}
             </Button>
           )}
 
-          {doc.status !== 'rascunho' && doc.status !== 'revogado' && (
+          {canUseDocument && (
             <>
               {doc.publicToken && (
                 <Button variant="outline" onClick={handleCopyLink}>
@@ -203,7 +207,7 @@ export default function DocumentView() {
               <CardTitle className="text-lg">Prévia do Documento</CardTitle>
               <CardDescription>Layout exato que será gerado no PDF.</CardDescription>
             </div>
-            {doc.status !== 'rascunho' && doc.status !== 'revogado' && (
+            {canUseDocument && (
               <Button size="sm" onClick={() => downloadPdf(doc.id, doc.title)}>
                 <Download className="mr-2 h-3.5 w-3.5" /> Baixar PDF
               </Button>
@@ -215,14 +219,14 @@ export default function DocumentView() {
             <DocumentHtmlPreview doc={rendered} />
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-center px-8">
-              <div className="text-4xl mb-4">📄</div>
-              <p className="text-lg font-medium text-muted-foreground">Documento ainda não finalizado</p>
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted text-2xl">PDF</div>
+              <p className="text-lg font-medium text-muted-foreground">Prévia ainda não disponível</p>
               <p className="text-sm text-muted-foreground mt-2 max-w-sm">
-                Clique em "Finalizar Documento" para gerar a prévia visual e ativar o download do PDF.
+                O documento foi criado, mas a prévia visual ainda não veio do backend. Gere a prévia ou tente atualizar a página em instantes.
               </p>
-              {doc.status === 'rascunho' && (
+              {needsPreviewGeneration && (
                 <Button className="mt-6" onClick={handleGenerate} disabled={generateMutation.isPending}>
-                  {generateMutation.isPending ? "Finalizando..." : "Finalizar Documento"}
+                  {generateMutation.isPending ? "Gerando prévia..." : "Gerar prévia"}
                 </Button>
               )}
             </div>

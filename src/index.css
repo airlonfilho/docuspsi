@@ -43,35 +43,35 @@
 }
 
 :root {
-  --background: 210 40% 98%;
-  --foreground: 222 84% 5%;
+  --background: 210 20% 98%;;
+  --foreground: 221 39% 11%;
 
   --card: 0 0% 100%;
   --card-foreground: 222 84% 5%;
-  --card-border: 214 32% 91%;
+  --card-border: 39 23% 82%;
 
   --popover: 0 0% 100%;
   --popover-foreground: 222 84% 5%;
   --popover-border: 214 32% 91%;
 
-  --primary: 221 83% 53%;
+  --primary: 0 0% 7%;
   --primary-foreground: 210 40% 98%;
 
   --secondary: 248 83% 65%;
   --secondary-foreground: 210 40% 98%;
 
-  --muted: 210 40% 96.1%;
+  --muted: 39 50% 96%;
   --muted-foreground: 215 16% 47%;
 
-  --accent: 271 91% 65%;
+  --accent: 258 90% 66%;
   --accent-foreground: 210 40% 98%;
 
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
 
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 221 83% 53%;
+  --border: 39 23% 82%;
+  --input: 39 23% 82%;
+  --ring: 258 90% 66%;
 
   --app-font-sans: 'Inter', sans-serif;
   --radius: 0.75rem;
@@ -113,7 +113,27 @@
   * {
     @apply border-border;
   }
+  html,
+  body,
+  #root {
+    min-height: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    background: #FFFFFF;
+  }
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
   }
 }

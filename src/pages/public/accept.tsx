@@ -9,14 +9,13 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DocumentHtmlPreview } from "@/components/document-html-preview";
 import { parseRenderedContent } from "@/components/document-types";
 import { DocusPsiLogoImage } from "@/components/docuspsi-logo";
 import { getApiBaseUrl } from "@workspace/api-client-react";
+import { AppCheckbox, AppCpfInput, AppInput } from "@/components/app-form";
 
 const acceptSchema = z.object({
   acceptedName: z.string().min(2, "Nome é obrigatório"),
@@ -159,7 +158,7 @@ export default function PublicAccept() {
   const rendered = parseRenderedContent(doc.renderedContent);
 
   return (
-    <div className="min-h-screen bg-[#e5e7eb] px-4 py-12">
+    <div className="min-h-screen bg-[#FFFFFF] px-4 py-8 md:py-12">
       <div className="mx-auto max-w-4xl space-y-8">
         <header className="rounded-2xl bg-white p-6 text-center shadow-sm">
           <DocusPsiLogoImage variant="icon" className="mx-auto mb-4 h-14 w-14" />
@@ -180,7 +179,7 @@ export default function PublicAccept() {
         </header>
 
         {rendered ? (
-          <div className="overflow-hidden rounded-2xl shadow-lg">
+          <div className="overflow-x-auto rounded-2xl border border-[#DDD6C7] bg-[#FFFFFF] shadow-sm">
             <DocumentHtmlPreview doc={rendered} />
           </div>
         ) : (
@@ -220,40 +219,44 @@ export default function PublicAccept() {
                   <FormField control={form.control} name="acceptedName" render={({ field }) => (
                     <FormItem className="md:col-span-2">
                       <FormLabel>Nome completo *</FormLabel>
-                      <FormControl><Input {...field} placeholder="Nome como no documento de identidade" autoComplete="name" /></FormControl>
+                      <FormControl><AppInput {...field} placeholder="Nome como no documento de identidade" autoComplete="name" /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="acceptedCpf" render={({ field }) => (
                     <FormItem>
                       <FormLabel>CPF opcional</FormLabel>
-                      <FormControl><Input {...field} placeholder="000.000.000-00" inputMode="numeric" /></FormControl>
+                      <FormControl><AppCpfInput value={field.value} onChange={field.onChange} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="acceptedEmail" render={({ field }) => (
                     <FormItem>
                       <FormLabel>E-mail opcional</FormLabel>
-                      <FormControl><Input type="email" {...field} placeholder="seu@email.com" autoComplete="email" /></FormControl>
+                      <FormControl><AppInput type="email" {...field} placeholder="seu@email.com" autoComplete="email" /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                 </div>
 
                 <FormField control={form.control} name="confirmed" render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border bg-muted/20 p-4">
+                  <FormItem>
                     <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} aria-label="Confirmar leitura e aceite do documento" />
+                      <AppCheckbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        error={!!form.formState.errors.confirmed}
+                        label={(
+                          <span>
+                            <span className="font-medium">Li, compreendi e estou de acordo com o conteúdo deste documento.</span>
+                            <span className="mt-1 block text-sm text-muted-foreground">
+                              Ao clicar em "Li e aceito este documento", você registra um aceite simples de leitura e concordância.
+                            </span>
+                          </span>
+                        )}
+                      />
                     </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="cursor-pointer">
-                        Li, compreendi e estou de acordo com o conteúdo deste documento.
-                      </FormLabel>
-                      <p className="text-sm leading-relaxed text-muted-foreground">
-                        Ao clicar em "Li e aceito este documento", você registra um aceite simples de leitura e concordância.
-                      </p>
-                      <FormMessage />
-                    </div>
+                    <FormMessage />
                   </FormItem>
                 )} />
 

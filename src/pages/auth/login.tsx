@@ -60,7 +60,7 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F7F3EA] p-4">
+    <div className="flex min-h-screen items-center justify-center bg-[#FFFFFF] p-4">
       <Card className="w-full max-w-md border-[#DDD6C7] bg-white shadow-sm">
         <CardHeader className="space-y-1 pb-6 text-center">
           <DocusPsiLogoImage variant="icon" className="mx-auto mb-2 h-14 w-14" />

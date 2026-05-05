@@ -9,10 +9,20 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
+import {
+  AppCpfInput,
+  AppDatePicker,
+  AppFormActions,
+  AppFormSection,
+  AppInput,
+  AppPhoneInput,
+  AppSelect,
+  AppSelectWithOther,
+  AppTextarea,
+  RELATIONSHIP_OPTIONS,
+  SERVICE_TYPE_OPTIONS,
+} from "@/components/app-form";
 
 const patientSchema = z.object({
   fullName: z.string().min(2, "Nome é obrigatório"),
@@ -130,107 +140,97 @@ export default function PatientEdit() {
         <CardContent className="pt-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <AppFormSection title="Dados do paciente" description="Dados usados para preencher documentos e histórico.">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField control={form.control} name="fullName" render={({ field }) => (
                   <FormItem className="md:col-span-2">
                     <FormLabel>Nome completo *</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
+                    <FormControl><AppInput {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="cpf" render={({ field }) => (
                   <FormItem>
                     <FormLabel>CPF</FormLabel>
-                    <FormControl><Input placeholder="000.000.000-00" {...field} /></FormControl>
+                    <FormControl><AppCpfInput value={field.value} onChange={field.onChange} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="birthDate" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Data de nascimento</FormLabel>
-                    <FormControl><Input type="date" {...field} /></FormControl>
+                    <FormControl><AppDatePicker value={field.value} onChange={field.onChange} optional /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="email" render={({ field }) => (
                   <FormItem>
                     <FormLabel>E-mail</FormLabel>
-                    <FormControl><Input type="email" placeholder="email@exemplo.com" {...field} /></FormControl>
+                    <FormControl><AppInput type="email" placeholder="email@exemplo.com" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="phone" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Telefone / WhatsApp</FormLabel>
-                    <FormControl><Input placeholder="(00) 00000-0000" {...field} /></FormControl>
+                    <FormControl><AppPhoneInput value={field.value} onChange={field.onChange} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="serviceType" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Modalidade de atendimento</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a modalidade" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="online">Online</SelectItem>
-                        <SelectItem value="presencial">Presencial</SelectItem>
-                        <SelectItem value="hibrido">Híbrido</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl><AppSelect value={field.value} onValueChange={field.onChange} placeholder="Selecione a modalidade" options={SERVICE_TYPE_OPTIONS} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
               </div>
+              </AppFormSection>
 
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Responsável legal, se aplicável</h3>
+              <AppFormSection title="Responsável legal" description="Dados opcionais para documentos de menores ou responsáveis.">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <FormField control={form.control} name="legalGuardianName" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nome do responsável</FormLabel>
-                      <FormControl><Input {...field} /></FormControl>
+                      <FormControl><AppInput {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="legalGuardianCpf" render={({ field }) => (
                     <FormItem>
                       <FormLabel>CPF do responsável</FormLabel>
-                      <FormControl><Input {...field} /></FormControl>
+                      <FormControl><AppCpfInput value={field.value} onChange={field.onChange} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="legalGuardianRelationship" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Parentesco</FormLabel>
-                      <FormControl><Input placeholder="Mãe, pai, responsável..." {...field} /></FormControl>
+                      <FormControl><AppSelectWithOther value={field.value} onValueChange={field.onChange} placeholder="Selecione o parentesco" options={RELATIONSHIP_OPTIONS} otherLabel="Descreva o parentesco" /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                 </div>
-              </div>
+              </AppFormSection>
 
               <FormField control={form.control} name="notes" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Observações internas</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Anotações que não aparecerão nos documentos..." className="resize-none" {...field} />
+                    <AppTextarea placeholder="Anotações que não aparecerão nos documentos..." className="resize-none" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
 
-              <div className="flex justify-end gap-4">
+              <AppFormActions>
                 <Button variant="outline" asChild>
                   <Link href={`/app/patients/${patientId}`}>Cancelar</Link>
                 </Button>
                 <Button type="submit" disabled={updateMutation.isPending}>
                   {updateMutation.isPending ? "Salvando..." : "Salvar alterações"}
                 </Button>
-              </div>
+              </AppFormActions>
             </form>
           </Form>
         </CardContent>

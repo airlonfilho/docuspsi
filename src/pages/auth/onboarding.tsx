@@ -7,10 +7,10 @@ import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { DocusPsiLogoImage } from "@/components/docuspsi-logo";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
+import { AppCpfInput, AppInput, AppPhoneInput, AppSelect, BRAZIL_STATE_OPTIONS } from "@/components/app-form";
 
 const profileSchema = z.object({
   fullName: z.string().min(2, "Nome é obrigatório"),
@@ -90,35 +90,35 @@ export default function Onboarding() {
                   <FormField control={form.control} name="fullName" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nome Completo *</FormLabel>
-                      <FormControl><Input {...field} /></FormControl>
+                      <FormControl><AppInput {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="crp" render={({ field }) => (
                     <FormItem>
                       <FormLabel>CRP *</FormLabel>
-                      <FormControl><Input placeholder="Ex: 00/00000" {...field} /></FormControl>
+                      <FormControl><AppInput placeholder="Ex: 00/00000" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="professionalEmail" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email Profissional</FormLabel>
-                      <FormControl><Input type="email" {...field} /></FormControl>
+                      <FormControl><AppInput type="email" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="phone" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Telefone / WhatsApp</FormLabel>
-                      <FormControl><Input {...field} /></FormControl>
+                      <FormControl><AppPhoneInput value={field.value} onChange={field.onChange} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="documentNumber" render={({ field }) => (
                     <FormItem>
                       <FormLabel>CPF / CNPJ</FormLabel>
-                      <FormControl><Input {...field} /></FormControl>
+                      <FormControl><AppCpfInput value={field.value} onChange={field.onChange} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
@@ -133,28 +133,28 @@ export default function Onboarding() {
                   <FormField control={form.control} name="clinicName" render={({ field }) => (
                     <FormItem className="md:col-span-2">
                       <FormLabel>Nome da Clínica / Consultório (opcional)</FormLabel>
-                      <FormControl><Input {...field} /></FormControl>
+                      <FormControl><AppInput {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="city" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Cidade *</FormLabel>
-                      <FormControl><Input {...field} /></FormControl>
+                      <FormControl><AppInput {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="state" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Estado (UF) *</FormLabel>
-                      <FormControl><Input placeholder="Ex: SP" maxLength={2} {...field} /></FormControl>
+                      <FormControl><AppSelect value={field.value} onValueChange={field.onChange} placeholder="Selecione a UF" options={BRAZIL_STATE_OPTIONS} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="address" render={({ field }) => (
                     <FormItem className="md:col-span-2">
                       <FormLabel>Endereço Completo (opcional)</FormLabel>
-                      <FormControl><Input {...field} /></FormControl>
+                      <FormControl><AppInput {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />

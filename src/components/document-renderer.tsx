@@ -16,10 +16,11 @@ interface ProfessionalHeader {
   phone?: string;
   city: string;
   state: string;
+  signatureUrl?: string;
 }
 
 interface SignatureBlock {
-  professional: { name: string; crp: string; role: string };
+  professional: { name: string; crp: string; role: string; signatureUrl?: string };
   patient?: { name: string; role: string };
   guardian?: { name: string; role: string };
   city: string;
@@ -59,6 +60,7 @@ interface DocumentRendererProps {
 export function DocumentRenderer({ doc, compact = false }: DocumentRendererProps) {
   const h = doc.professionalHeader;
   const sig = doc.signatureBlock;
+  const signatureUrl = sig.professional.signatureUrl || h.signatureUrl;
 
   return (
     <div className="font-sans text-sm text-slate-900 space-y-6">
@@ -130,7 +132,10 @@ export function DocumentRenderer({ doc, compact = false }: DocumentRendererProps
       <div className="border-t border-slate-200 pt-5 space-y-4">
         <p className="text-xs text-slate-500">{sig.city}/{sig.state}, {sig.date}</p>
         <div className="grid grid-cols-2 gap-6">
-          <div>
+          <div className="flex min-h-32 flex-col justify-end text-center">
+            <div className="mb-2 flex min-h-20 items-end justify-center">
+              {signatureUrl && <img src={signatureUrl} alt="Assinatura da profissional" className="max-h-20 max-w-56 object-contain" />}
+            </div>
             <div className="border-t border-slate-300 pt-3">
               <p className="font-semibold text-sm text-slate-900">{sig.professional.name}</p>
               <p className="text-xs text-slate-500">CRP {sig.professional.crp}</p>
@@ -152,9 +157,11 @@ export function DocumentRenderer({ doc, compact = false }: DocumentRendererProps
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-        <p className="text-xs text-slate-400 italic leading-relaxed">{doc.notice}</p>
-      </div>
+      {doc.notice && doc.notice.length < 120 && (
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <p className="text-xs text-slate-400 italic leading-relaxed">{doc.notice}</p>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { DocusPsiLogoImage } from "@/components/docuspsi-logo";
+import { useListPlans, type Plan } from "@workspace/api-client-react";
 import {
   FileText, FileSignature, Receipt, FileHeart, FilePen,
   Check, ChevronDown, ChevronUp, Menu, X, Download,
@@ -11,7 +12,7 @@ import {
 
 // ─── Design Tokens ───────────────────────────────────────────────────────────
 const C = {
-  bg: "#F7F3EA",
+  bg: "#FFFFFF",
   paper: "#FFFFFF",
   paperMuted: "#FAF7F0",
   border: "#DDD6C7",
@@ -108,7 +109,7 @@ function Header() {
   return (
     <header
       className="sticky top-0 z-50"
-      style={{ background: "rgba(247,243,234,0.92)", backdropFilter: "blur(8px)", borderBottom: `1px solid ${C.border}` }}
+      style={{ background: "rgba(255, 255, 255, 0.92)", backdropFilter: "blur(8px)", borderBottom: `1px solid ${C.border}` }}
     >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link href="/" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] rounded-xl">
@@ -754,27 +755,51 @@ function Audience() {
 
 // ─── 11. Pricing ──────────────────────────────────────────────────────────────
 function Pricing() {
-  const plans = [
+  const { data: apiPlans, isError } = useListPlans();
+  const fallbackPlans: Plan[] = [
     {
-      name: "Essencial", price: "R$ 29", period: "/mês", recommended: false,
-      subtitle: "Para começar com documentos básicos.",
-      items: ["Até 20 documentos por mês", "Até 30 pacientes", "4 modelos essenciais", "PDF profissional", "Cabeçalho simples"],
-      cta: "Começar no Essencial",
+      key: "ESSENTIAL",
+      name: "Essencial",
+      price: 29,
+      currency: "BRL",
+      interval: "month",
+      recommended: false,
+      features: ["Até 20 documentos por mês", "Até 30 pacientes", "4 modelos essenciais", "PDF profissional", "Cabeçalho simples"],
     },
     {
-      name: "Pro", price: "R$ 59", period: "/mês", recommended: true,
-      subtitle: "Para psicólogas(os) que querem profissionalizar a rotina documental.",
-      microcopy: "Ideal para a maioria das psicólogas clínicas.",
-      items: ["Documentos ilimitados", "Pacientes ilimitados", "Todos os modelos", "Logo, cabeçalho e rodapé personalizados", "Histórico por paciente", "Aceite simples por link"],
-      cta: "Começar no Pro",
+      key: "PRO",
+      name: "Pro",
+      price: 59,
+      currency: "BRL",
+      interval: "month",
+      recommended: true,
+      features: ["Documentos ilimitados", "Pacientes ilimitados", "Todos os modelos", "Logo, cabeçalho e rodapé personalizados", "Histórico por paciente", "Aceite simples por link"],
     },
     {
-      name: "Clínica", price: "R$ 149", period: "/mês", recommended: false,
-      subtitle: "Para clínicas pequenas ou consultórios com equipe.",
-      items: ["Até 3 profissionais", "Tudo do Pro", "Identidade da clínica", "Modelos padronizados", "Gestão por profissional", "Suporte prioritário"],
-      cta: "Falar sobre plano Clínica",
+      key: "CLINIC",
+      name: "Clínica",
+      price: 149,
+      currency: "BRL",
+      interval: "month",
+      recommended: false,
+      features: ["Até 3 profissionais", "Tudo do Pro", "Identidade da clínica", "Modelos padronizados", "Gestão por profissional", "Suporte prioritário"],
     },
   ];
+  const plans = apiPlans?.length ? apiPlans : fallbackPlans;
+  const formatPlanPrice = (plan: Plan) => {
+    if (typeof plan.price !== "number") return "Consultar";
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: plan.currency || "BRL",
+      maximumFractionDigits: 0,
+    }).format(plan.price);
+  };
+  const formatPlanPeriod = (plan: Plan) => {
+    if (plan.interval === "month") return "/mês";
+    if (plan.interval === "year") return "/ano";
+    return plan.interval ? `/${plan.interval}` : "";
+  };
+
   return (
     <SectionWrap id="precos">
       <SectionHead
@@ -783,9 +808,9 @@ function Pricing() {
         sub="Comece validando sua rotina documental com planos simples e sem complexidade."
       />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-        {plans.map((p, i) => (
+        {plans.map((p) => (
           <div
-            key={i}
+            key={p.key}
             style={{
               background: C.paper,
               border: p.recommended ? `2px solid ${C.accent}` : `1px solid ${C.border}`,
@@ -802,15 +827,17 @@ function Pricing() {
             <div style={{ marginBottom: 20 }}>
               <div style={{ fontFamily: font.display, fontWeight: 700, fontSize: 18, color: C.text, marginBottom: 4 }}>{p.name}</div>
               <div style={{ display: "flex", alignItems: "baseline", gap: 2 }}>
-                <span style={{ fontFamily: font.display, fontWeight: 800, fontSize: 32, color: C.text }}>{p.price}</span>
-                <span style={{ fontFamily: font.body, fontSize: 14, color: C.textMuted }}>{p.period}</span>
+                <span style={{ fontFamily: font.display, fontWeight: 800, fontSize: 32, color: C.text }}>{formatPlanPrice(p)}</span>
+                <span style={{ fontFamily: font.body, fontSize: 14, color: C.textMuted }}>{formatPlanPeriod(p)}</span>
               </div>
-              <p style={{ fontFamily: font.body, color: C.textMuted, fontSize: 13, lineHeight: 1.55, marginTop: 10 }}>{p.subtitle}</p>
-              {p.microcopy && <p style={{ fontFamily: font.body, color: C.accentText, fontSize: 12, fontWeight: 700, marginTop: 8 }}>{p.microcopy}</p>}
+              <p style={{ fontFamily: font.body, color: C.textMuted, fontSize: 13, lineHeight: 1.55, marginTop: 10 }}>
+                {p.recommended ? "Ideal para profissionalizar a rotina documental." : "Para organizar documentos com mais previsibilidade."}
+              </p>
+              {p.recommended && <p style={{ fontFamily: font.body, color: C.accentText, fontSize: 12, fontWeight: 700, marginTop: 8 }}>Ideal para a maioria das psicólogas clínicas.</p>}
             </div>
             <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 16, marginBottom: 20 }}>
-              {p.items.map((item, j) => (
-                <div key={j} className="flex items-start gap-2.5 mb-2.5">
+              {(p.features || []).map((item) => (
+                <div key={item} className="flex items-start gap-2.5 mb-2.5">
                   <Check style={{ width: 14, height: 14, color: p.recommended ? C.accent : C.success, flexShrink: 0, marginTop: 2 }} />
                   <span style={{ fontFamily: font.body, fontSize: 13, color: C.textMuted, lineHeight: 1.5 }}>{item}</span>
                 </div>
@@ -826,13 +853,13 @@ function Pricing() {
               }}
               className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] focus-visible:ring-offset-2"
             >
-              {p.cta}
+              {p.recommended ? "Começar no Pro" : `Começar no ${p.name}`}
             </Link>
           </div>
         ))}
       </div>
       <p style={{ textAlign: "center", fontFamily: font.body, color: C.textMuted, fontSize: 12, marginTop: 16 }}>
-        Plano anual com 2 meses grátis em breve.
+        {isError ? "Exibindo uma referência de planos enquanto a API não responde." : "Plano anual com 2 meses grátis em breve."}
       </p>
     </SectionWrap>
   );

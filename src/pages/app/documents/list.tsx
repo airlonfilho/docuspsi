@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
-import { useListDocuments } from "@workspace/api-client-react";
+import { useListDocuments, useListPatients } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, MoreHorizontal, FileText, Download, Link as LinkIcon, Eye, AlertCircle } from "lucide-react";
 import { useDownloadPdf } from "@/hooks/use-download-pdf";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,6 +12,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AppCombobox,
+  AppDatePicker,
+  AppInput,
+  AppSelect,
+  DOCUMENT_STATUS_OPTIONS,
+  DOCUMENT_TYPE_OPTIONS,
+} from "@/components/app-form";
 
 function getStatusBadge(status: string) {
   switch (status) {
@@ -30,9 +36,16 @@ function getStatusBadge(status: string) {
 export default function DocumentsList() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("todos");
+  const [templateType, setTemplateType] = useState("todos");
+  const [patientId, setPatientId] = useState("todos");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const { data: documents, isLoading, isError } = useListDocuments({
     status: status === "todos" ? undefined : status,
+    templateType: templateType === "todos" ? undefined : templateType,
+    patientId: patientId === "todos" ? undefined : patientId,
   });
+  const { data: patients } = useListPatients();
   const downloadPdf = useDownloadPdf();
   const { toast } = useToast();
 
@@ -43,12 +56,15 @@ export default function DocumentsList() {
   const filteredDocuments = useMemo(() => {
     const term = search.toLowerCase().trim();
     return (documents || []).filter((doc) => {
+      const createdAt = doc.createdAt.slice(0, 10);
+      if (dateFrom && createdAt < dateFrom) return false;
+      if (dateTo && createdAt > dateTo) return false;
       if (!term) return true;
       return [doc.title, doc.patient?.fullName, doc.template?.name]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(term));
     });
-  }, [documents, search, status]);
+  }, [documents, search, dateFrom, dateTo]);
 
   async function copyLink(token?: string | null) {
     if (!token) return;
@@ -71,30 +87,27 @@ export default function DocumentsList() {
         </Button>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1 sm:max-w-sm">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+        <div className="relative min-w-0">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
+          <AppInput
             className="pl-8"
             placeholder="Buscar por título, paciente ou modelo..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
         </div>
-        <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-full sm:w-[220px]">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos os status</SelectItem>
-            <SelectItem value="rascunho">Rascunho</SelectItem>
-            <SelectItem value="gerado">Gerado</SelectItem>
-            <SelectItem value="enviado">Enviado</SelectItem>
-            <SelectItem value="aguardando_aceite">Aguardando aceite</SelectItem>
-            <SelectItem value="aceito">Aceito</SelectItem>
-            <SelectItem value="revogado">Revogado</SelectItem>
-          </SelectContent>
-        </Select>
+        <AppSelect value={status} onValueChange={setStatus} placeholder="Status" options={[{ label: "Todos os status", value: "todos" }, ...DOCUMENT_STATUS_OPTIONS]} />
+        <AppSelect value={templateType} onValueChange={setTemplateType} placeholder="Tipo" options={[{ label: "Todos os tipos", value: "todos" }, ...DOCUMENT_TYPE_OPTIONS]} />
+        <AppCombobox
+          value={patientId}
+          onValueChange={setPatientId}
+          placeholder="Paciente"
+          searchPlaceholder="Buscar paciente..."
+          options={[{ label: "Todos os pacientes", value: "todos" }, ...(patients || []).map((patient) => ({ label: patient.fullName, value: patient.id }))]}
+        />
+        <AppDatePicker value={dateFrom} onChange={setDateFrom} placeholder="De" optional />
+        <AppDatePicker value={dateTo} onChange={setDateTo} placeholder="Até" optional />
       </div>
 
       {isError && (
@@ -109,7 +122,7 @@ export default function DocumentsList() {
         </Card>
       )}
 
-      <div className="border rounded-lg bg-card">
+      <div className="overflow-hidden rounded-2xl border border-[#DDD6C7] bg-white shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>

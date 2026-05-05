@@ -14,7 +14,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, FileText, FileCode, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, FileText, FileCode, Settings, LogOut, CreditCard } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface AppLayoutProps {
@@ -38,6 +38,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     { label: "Pacientes", path: "/app/patients", icon: Users },
     { label: "Documentos", path: "/app/documents", icon: FileText },
     { label: "Modelos", path: "/app/templates", icon: FileCode },
+    { label: "Cobrança", path: "/app/billing", icon: CreditCard },
     { label: "Configurações", path: "/app/settings", icon: Settings },
   ];
 
@@ -47,8 +48,8 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <Sidebar className="border-r-[#DDD6C7]">
+      <div className="flex min-h-screen w-full min-w-0 bg-background">
+        <Sidebar collapsible="icon" className="border-r-[#DDD6C7]">
           <SidebarHeader className="h-16 flex items-center justify-center border-b px-3" style={{ borderColor: "#DDD6C7", background: "#FFFFFF" }}>
             <Link href="/app" className="flex w-full items-center rounded-xl px-1.5 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]">
               <DocusPsiLogoImage variant="horizontal" className="h-10 w-40 max-w-full justify-start" />
@@ -118,14 +119,14 @@ export function AppLayout({ children }: AppLayoutProps) {
         </Sidebar>
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <header className="h-16 flex items-center justify-between gap-4 px-6 border-b bg-card">
+          <header className="h-16 flex items-center justify-between gap-4 border-b bg-card px-4 md:px-6">
             <SidebarTrigger />
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-sm font-semibold text-foreground">{activeItem.label}</h1>
               <p className="truncate text-xs text-muted-foreground">DocusPsi</p>
             </div>
           </header>
-          <main className="flex-1 overflow-auto p-6">
+          <main className="min-w-0 flex-1 overflow-auto p-4 md:p-6">
             {children}
           </main>
         </div>

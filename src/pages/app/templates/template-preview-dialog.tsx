@@ -14,9 +14,11 @@ import { getApiBaseUrl } from "@workspace/api-client-react";
 const TYPE_LABELS: Record<string, string> = {
   contrato: "Contrato",
   termo: "Termo",
+  "termo-online": "Termo Online",
   autorizacao: "Autorização",
   declaracao: "Declaração",
   recibo: "Recibo",
+  guia: "Guia/Checklist",
   atestado: "Atestado",
   relatorio: "Relatório",
 };
@@ -24,9 +26,11 @@ const TYPE_LABELS: Record<string, string> = {
 const TYPE_COLORS: Record<string, string> = {
   contrato: "bg-[#EDE9FE] text-[#6D28D9]",
   termo: "bg-[#EDE9FE] text-[#6D28D9]",
+  "termo-online": "bg-[#EDE9FE] text-[#6D28D9]",
   autorizacao: "bg-amber-100 text-amber-800",
   declaracao: "bg-green-100 text-green-800",
   recibo: "bg-emerald-100 text-emerald-800",
+  guia: "bg-sky-100 text-sky-800",
   atestado: "bg-rose-100 text-rose-800",
   relatorio: "bg-slate-100 text-slate-800",
 };
@@ -129,6 +133,14 @@ export interface PreviewTemplate {
   description?: string | null;
   type: string;
   fieldCount?: number;
+  category?: string;
+  structure?: string[];
+  usageNotes?: string;
+  tags?: string[];
+  modality?: string;
+  audience?: string;
+  useCase?: string;
+  contentHtml?: string;
 }
 
 interface TemplatePreviewDialogProps {
@@ -172,7 +184,12 @@ function buildFallbackPreview(template: PreviewTemplate, sections: { title: stri
     },
     sections: sections.length
       ? sections.map((section) => ({ title: section.title, content: section.content }))
-      : [
+      : (template.structure || []).length
+        ? (template.structure || []).map((section) => ({
+            title: section,
+            content: "Seção editável de apoio administrativo, com conteúdo a ser revisado pela(o) profissional antes da emissão.",
+          }))
+        : [
           {
             title: "Conteúdo do modelo",
             content: template.description || "Modelo estruturado para preenchimento guiado e geração em PDF.",
@@ -185,7 +202,7 @@ function buildFallbackPreview(template: PreviewTemplate, sections: { title: stri
       state: "SP",
       date: new Date().toLocaleDateString("pt-BR"),
     },
-    notice: "Prévia demonstrativa com dados fictícios. Revise e adapte o conteúdo antes de emitir.",
+    notice: template.usageNotes || "Prévia demonstrativa com dados fictícios. Revise e adapte o conteúdo antes de emitir.",
     footerPrefs: {
       text: "Gerado por DocusPsi",
       showGeneratedBy: true,
@@ -248,8 +265,16 @@ export function TemplatePreviewDialog({ template, onClose }: TemplatePreviewDial
     staleTime: 1000 * 60 * 10,
   });
 
-  const sections = template ? (TEMPLATE_SECTIONS[template.slug] ?? []) : [];
-  const meta = template ? TEMPLATE_META[template.slug] : null;
+  const sections = template
+    ? (TEMPLATE_SECTIONS[template.slug] ?? (template.structure || []).map((title) => ({
+        title,
+        content: "Seção editável para organização administrativa do documento.",
+      })))
+    : [];
+  const meta = template ? (TEMPLATE_META[template.slug] || {
+    whenUse: template.useCase ? `Use em contextos de ${template.useCase.toLowerCase()}.` : "Use quando este modelo corresponder à necessidade administrativa do atendimento.",
+    observations: template.usageNotes || "Modelo editável para apoio administrativo. Revise antes de emitir.",
+  }) : null;
   const fallbackPreview = template ? buildFallbackPreview(template, sections) : null;
   const displayPreview = preview || (isError ? fallbackPreview : null);
 
@@ -276,7 +301,7 @@ export function TemplatePreviewDialog({ template, onClose }: TemplatePreviewDial
                     className={`text-[11px] py-0 px-1.5 ${TYPE_COLORS[template.type] ?? ""}`}
                     variant="secondary"
                   >
-                    {TYPE_LABELS[template.type] ?? template.type}
+                    {template.category || TYPE_LABELS[template.type] || template.type}
                   </Badge>
                   <span className="text-xs text-muted-foreground line-clamp-1 hidden sm:block">
                     {template.description}
@@ -295,8 +320,8 @@ export function TemplatePreviewDialog({ template, onClose }: TemplatePreviewDial
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto lg:overflow-hidden min-h-0">
-          <div className="flex flex-col lg:grid lg:grid-cols-[3fr_2fr] lg:h-full">
-            <div className="lg:overflow-y-auto border-b lg:border-b-0 lg:border-r bg-gray-50">
+          <div className="flex min-w-0 flex-col lg:grid lg:h-full lg:grid-cols-[minmax(0,3fr)_minmax(280px,2fr)]">
+            <div className="min-w-0 border-b bg-[#FFFFFF] lg:overflow-y-auto lg:border-b-0 lg:border-r">
               {isLoading ? (
                 <PreviewSkeleton />
               ) : displayPreview ? (
@@ -306,7 +331,7 @@ export function TemplatePreviewDialog({ template, onClose }: TemplatePreviewDial
                       Não foi possível carregar a prévia do backend. Exibindo uma prévia demonstrativa com dados fictícios.
                     </div>
                   )}
-                  <div style={{ zoom: "0.72", transformOrigin: "top left" }}>
+                  <div className="max-w-full overflow-x-auto" style={{ zoom: "0.72", transformOrigin: "top left" }}>
                     <DocumentHtmlPreview doc={displayPreview} />
                   </div>
                 </div>
@@ -323,9 +348,14 @@ export function TemplatePreviewDialog({ template, onClose }: TemplatePreviewDial
                     {template?.description}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
+                    {(template?.tags || []).slice(0, 5).map((tag) => (
+                      <Badge key={tag} variant="secondary" className="bg-[#FAF7F0] text-[#111827]">
+                        {tag}
+                      </Badge>
+                    ))}
                     <Badge variant="outline">{template?.fieldCount || 0} campos guiados</Badge>
+                    <Badge variant="outline">{template?.structure?.length || sections.length} seções</Badge>
                     <Badge variant="outline">Preview A4</Badge>
-                    <Badge variant="outline">PDF profissional</Badge>
                   </div>
                 </div>
 

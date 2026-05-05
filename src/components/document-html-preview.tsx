@@ -11,22 +11,25 @@ const DOCUMENT_CSS = `
 
 .pdf-preview-wrapper {
   width: 100%;
-  background: #e5e7eb;
+  max-width: 100%;
+  background: #FFFFFF;
   padding: 32px;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   min-height: 100%;
+  overflow-x: auto;
 }
 
 .pdf-page {
   width: 794px;
+  flex: 0 0 auto;
   min-height: 1123px;
   background: #ffffff;
-  color: #0f172a;
-  font-family: Arial, Helvetica, sans-serif;
+  color: #111827;
+  font-family: Inter, Arial, Helvetica, sans-serif;
   padding: 48px;
-  padding-bottom: 88px;
+  padding-bottom: 104px;
   box-sizing: border-box;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
   position: relative;
@@ -36,7 +39,7 @@ const DOCUMENT_CSS = `
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  border-bottom: 2px solid var(--document-primary-color, #2563eb);
+  border-bottom: 2px solid var(--document-primary-color, #8B5CF6);
   padding-bottom: 20px;
   margin-bottom: 32px;
 }
@@ -45,6 +48,7 @@ const DOCUMENT_CSS = `
   display: flex;
   align-items: center;
   gap: 16px;
+  min-width: 0;
 }
 
 .header-logo {
@@ -73,13 +77,15 @@ const DOCUMENT_CSS = `
 .header-title-group {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .professional-name {
   font-size: 18px;
   font-weight: 700;
-  color: #0f172a;
+  color: #111827;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .professional-crp {
@@ -101,6 +107,8 @@ const DOCUMENT_CSS = `
   font-size: 11px;
   color: #64748b;
   line-height: 1.6;
+  max-width: 240px;
+  overflow-wrap: anywhere;
 }
 
 .document-title-area {
@@ -114,9 +122,9 @@ const DOCUMENT_CSS = `
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--document-primary-color, #2563eb);
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  color: var(--document-primary-color, #6D28D9);
+  background: #EDE9FE;
+  border: 1px solid #DDD6C7;
   border-radius: 999px;
   padding: 6px 12px;
   margin-bottom: 12px;
@@ -125,7 +133,7 @@ const DOCUMENT_CSS = `
 .document-title {
   font-size: 22px;
   font-weight: 700;
-  color: #0f172a;
+  color: #111827;
   margin: 0;
   line-height: 1.3;
 }
@@ -137,8 +145,8 @@ const DOCUMENT_CSS = `
 }
 
 .info-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #FAF7F0;
+  border: 1px solid #DDD6C7;
   border-radius: 14px;
   padding: 18px;
   margin-bottom: 28px;
@@ -167,7 +175,7 @@ const DOCUMENT_CSS = `
 
 .info-label {
   font-weight: 700;
-  color: #0f172a;
+  color: #111827;
 }
 
 .document-section {
@@ -177,7 +185,7 @@ const DOCUMENT_CSS = `
 .section-title {
   font-size: 13px;
   font-weight: 700;
-  color: #0f172a;
+  color: #111827;
   margin-bottom: 8px;
 }
 
@@ -190,9 +198,9 @@ const DOCUMENT_CSS = `
 }
 
 .section-highlight {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-left: 4px solid var(--document-primary-color, #2563eb);
+  background: #EDE9FE;
+  border: 1px solid #DDD6C7;
+  border-left: 4px solid var(--document-primary-color, #8B5CF6);
   border-radius: 10px;
   padding: 16px;
   margin-bottom: 20px;
@@ -203,21 +211,9 @@ const DOCUMENT_CSS = `
   margin-bottom: 10px;
 }
 
-.notice-box-gray {
-  background: #f8fafc;
-  border-left: 4px solid #94a3b8;
-  border-radius: 10px;
-  padding: 14px 16px;
-  margin: 24px 0;
-  font-size: 11px;
-  color: #64748b;
-  line-height: 1.5;
-  font-style: italic;
-}
-
 .signature-date {
-  margin-top: 40px;
-  margin-bottom: 8px;
+  margin-top: 64px;
+  margin-bottom: 32px;
   font-size: 11px;
   color: #64748b;
 }
@@ -225,14 +221,38 @@ const DOCUMENT_CSS = `
 .signature-area {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 48px;
-  margin-top: 16px;
+  gap: 56px;
+  margin-top: 0;
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 
 .signature-block {
   text-align: center;
   font-size: 11px;
   color: #334155;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.signature-image-wrapper {
+  min-height: 84px;
+  max-height: 104px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.signature-image {
+  max-width: 220px;
+  max-height: 84px;
+  object-fit: contain;
+  display: block;
 }
 
 .signature-line {
@@ -242,7 +262,7 @@ const DOCUMENT_CSS = `
 
 .signature-name {
   font-weight: 700;
-  color: #0f172a;
+  color: #111827;
 }
 
 .signature-role {
@@ -255,7 +275,7 @@ const DOCUMENT_CSS = `
   left: 48px;
   right: 48px;
   bottom: 24px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #DDD6C7;
   padding-top: 12px;
   display: flex;
   justify-content: space-between;
@@ -263,10 +283,12 @@ const DOCUMENT_CSS = `
   font-size: 9px;
   color: #94a3b8;
   line-height: 1.4;
+  flex-wrap: wrap;
 }
 
 .footer-left { max-width: 55%; }
 .footer-right { max-width: 45%; text-align: right; }
+.footer-left, .footer-right { overflow-wrap: anywhere; }
 
 .acceptance-stamp {
   margin-top: 24px;
@@ -277,6 +299,53 @@ const DOCUMENT_CSS = `
   padding: 14px 16px;
   font-size: 11px;
   line-height: 1.6;
+}
+
+.document-section,
+.info-card,
+.section-highlight,
+.acceptance-stamp,
+.payment-highlight {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  .pdf-preview-wrapper {
+    padding: 0;
+    background: #ffffff;
+  }
+
+  .pdf-page {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 18mm;
+    padding-bottom: 28mm;
+    box-shadow: none;
+  }
+
+  .document-footer {
+    left: 18mm;
+    right: 18mm;
+    bottom: 10mm;
+  }
+}
+
+@media screen and (max-width: 860px) {
+  .pdf-preview-wrapper {
+    justify-content: flex-start;
+    padding: 16px;
+  }
+
+  .pdf-page {
+    width: 794px;
+    min-width: 794px;
+  }
 }
 
 .acceptance-stamp strong {
@@ -341,6 +410,13 @@ function SectionContent({ content }: { content: string }) {
   );
 }
 
+function formatDocumentDate(value: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("pt-BR");
+}
+
 export interface AcceptanceInfo {
   name: string;
   date: string;
@@ -360,6 +436,7 @@ export function DocumentHtmlPreview({ doc, acceptanceInfo }: Props) {
   const sig = doc.signatureBlock;
   const secondSigner = sig.patient || sig.guardian;
   const prefs = doc.footerPrefs;
+  const signatureUrl = sig.professional.signatureUrl || doc.signatureUrl || h.signatureUrl;
 
   const amountRow = doc.slug === "recibo-pagamento"
     ? doc.infoBlock.rows.find((r) => r.label === "Valor recebido")
@@ -371,7 +448,7 @@ export function DocumentHtmlPreview({ doc, acceptanceInfo }: Props) {
     footerRightParts.push(`Doc. ${doc.documentId.substring(0, 8).toUpperCase()}`);
   }
   if (prefs?.showIssuedAt !== false) {
-    footerRightParts.push(`Emitido em ${doc.issueDate}`);
+    footerRightParts.push(`Emitido em ${formatDocumentDate(doc.issueDate)}`);
   }
   if (prefs?.showPageNumber !== false) {
     footerRightParts.push("Página 1");
@@ -387,7 +464,7 @@ export function DocumentHtmlPreview({ doc, acceptanceInfo }: Props) {
         >
           <header className="document-header">
             <div className="header-brand">
-              {doc.logoUrl && doc.logoUrl.startsWith("data:image/") ? (
+              {doc.logoUrl ? (
                 <img src={doc.logoUrl} className="header-logo" alt="Logo" />
               ) : (
                 <div
@@ -417,7 +494,7 @@ export function DocumentHtmlPreview({ doc, acceptanceInfo }: Props) {
             <div className="document-title-area">
               <div className="document-type-badge">{doc.type}</div>
               <h1 className="document-title">{doc.title}</h1>
-              <p className="document-subtitle">Emitido em {doc.issueDate}</p>
+              <p className="document-subtitle">Emitido em {formatDocumentDate(doc.issueDate)}</p>
             </div>
 
             <section className="info-card">
@@ -463,13 +540,14 @@ export function DocumentHtmlPreview({ doc, acceptanceInfo }: Props) {
               </div>
             )}
 
-            <div className="notice-box-gray">{doc.notice}</div>
-
             <div className="signature-date">
-              {sig.city}/{sig.state}, {sig.date}
+              {sig.city || sig.state ? `${sig.city}${sig.city && sig.state ? "/" : ""}${sig.state}, ${formatDocumentDate(sig.date)}` : `Data: ${formatDocumentDate(sig.date)}`}
             </div>
             <div className="signature-area">
               <div className="signature-block">
+                <div className="signature-image-wrapper">
+                  {signatureUrl && <img src={signatureUrl} className="signature-image" alt="Assinatura da profissional" />}
+                </div>
                 <div className="signature-line" />
                 <div className="signature-name">{sig.professional.name}</div>
                 <div className="signature-role">CRP {sig.professional.crp}</div>
@@ -477,6 +555,7 @@ export function DocumentHtmlPreview({ doc, acceptanceInfo }: Props) {
               </div>
               {secondSigner && (
                 <div className="signature-block">
+                  <div className="signature-image-wrapper" />
                   <div className="signature-line" />
                   <div className="signature-name">{secondSigner.name}</div>
                   <div className="signature-role">{secondSigner.role}</div>

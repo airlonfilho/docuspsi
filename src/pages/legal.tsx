@@ -4,7 +4,7 @@ import { DocusPsiLogoImage } from "@/components/docuspsi-logo";
 import { ArrowLeft, FileText, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 
 const C = {
-  bg: "#F7F3EA",
+  bg: "#FFFFFF",
   paper: "#FFFFFF",
   paperMuted: "#FAF7F0",
   border: "#DDD6C7",

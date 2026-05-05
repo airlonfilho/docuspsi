@@ -27,6 +27,7 @@ import DocumentForm from "@/pages/app/documents/form";
 import DocumentView from "@/pages/app/documents/view";
 import TemplatesList from "@/pages/app/templates/list";
 import Settings from "@/pages/app/settings";
+import Billing, { BillingCancel, BillingSuccess } from "@/pages/app/billing";
 
 // Public
 import PublicAccept from "@/pages/public/accept";
@@ -59,6 +60,9 @@ function Router() {
       
       <ProtectedRoute path="/app/templates" component={TemplatesList} layout={AppLayout} />
       <ProtectedRoute path="/app/settings" component={Settings} layout={AppLayout} />
+      <ProtectedRoute path="/app/billing/success" component={BillingSuccess} layout={AppLayout} />
+      <ProtectedRoute path="/app/billing/cancel" component={BillingCancel} layout={AppLayout} />
+      <ProtectedRoute path="/app/billing" component={Billing} layout={AppLayout} />
 
       <Route path="/accept/:token" component={PublicAccept} />
 

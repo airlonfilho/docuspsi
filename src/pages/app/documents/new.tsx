@@ -13,6 +13,8 @@ function getTemplateIcon(type: string) {
     case 'atestado': return <FileHeart className={className} />;
     case 'relatorio': return <FileSearch className={className} />;
     case 'contrato': return <FileSignature className={className} />;
+    case 'termo-online': return <FileText className={className} />;
+    case 'guia': return <FileSearch className={className} />;
     default: return <FileText className={className} />;
   }
 }

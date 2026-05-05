@@ -1,23 +1,25 @@
 import { useEffect, useState } from "react";
-import { useListTemplates } from "@workspace/api-client-react";
+import { useListTemplates, type Template } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, FileText, FileSignature, Receipt, FileSearch, FileHeart, FilePen, Search, X, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import { TemplatePreviewDialog } from "./template-preview-dialog";
 import type { PreviewTemplate } from "./template-preview-dialog";
+import { AppInput, AppSelect } from "@/components/app-form";
 
-type TemplateType = "todos" | "contrato" | "termo" | "autorizacao" | "declaracao" | "recibo" | "atestado" | "relatorio";
+type FilterValue = "todos" | string;
 
 const TYPE_LABELS: Record<string, string> = {
   contrato: "Contrato",
   termo: "Termo",
+  "termo-online": "Termo Online",
   autorizacao: "Autorização",
   declaracao: "Declaração",
   recibo: "Recibo",
+  guia: "Guia/Checklist",
   atestado: "Atestado",
   relatorio: "Relatório",
 };
@@ -25,9 +27,11 @@ const TYPE_LABELS: Record<string, string> = {
 const TYPE_COLORS: Record<string, string> = {
   contrato: "bg-[#EDE9FE] text-[#6D28D9]",
   termo: "bg-[#EDE9FE] text-[#6D28D9]",
+  "termo-online": "bg-[#EDE9FE] text-[#6D28D9]",
   autorizacao: "bg-amber-100 text-amber-800",
   declaracao: "bg-green-100 text-green-800",
   recibo: "bg-emerald-100 text-emerald-800",
+  guia: "bg-sky-100 text-sky-800",
   atestado: "bg-rose-100 text-rose-800",
   relatorio: "bg-slate-100 text-slate-800",
 };
@@ -47,24 +51,42 @@ function getTemplateIcon(type: string) {
 export default function TemplatesList() {
   const { data: templates, isLoading, isError } = useListTemplates();
   const [search, setSearch] = useState("");
-  const [activeType, setActiveType] = useState<TemplateType>("todos");
+  const [category, setCategory] = useState<FilterValue>("todos");
+  const [modality, setModality] = useState<FilterValue>("todos");
+  const [audience, setAudience] = useState<FilterValue>("todos");
+  const [useCase, setUseCase] = useState<FilterValue>("todos");
   const [previewTemplate, setPreviewTemplate] = useState<PreviewTemplate | null>(null);
 
-  const allTypes: TemplateType[] = ["todos", "contrato", "termo", "autorizacao", "declaracao", "recibo"];
+  const categoryOptions = [
+    { label: "Todas as categorias", value: "todos" },
+    { label: "Contrato", value: "Contrato" },
+    { label: "Termo de Consentimento", value: "Termo de Consentimento" },
+    { label: "Termo Online", value: "Termo Online" },
+    { label: "Autorização", value: "Autorização" },
+    { label: "Declaração", value: "Declaração" },
+    { label: "Recibo", value: "Recibo" },
+    { label: "Guia/Checklist", value: "Guia/Checklist" },
+  ];
+  const modalityOptions = ["Todas as modalidades", "Presencial", "Online", "Híbrido", "Não se aplica"].map((label, index) => ({ label, value: index === 0 ? "todos" : label }));
+  const audienceOptions = ["Todos os públicos", "Adulto", "Criança", "Adolescente", "Menor de idade", "Clínica", "Não se aplica"].map((label, index) => ({ label, value: index === 0 ? "todos" : label }));
+  const useOptions = ["Todos os usos", "Atendimento individual", "Primeira consulta", "Pacote de sessões", "Reembolso", "Comparecimento", "Organização"].map((label, index) => ({ label, value: index === 0 ? "todos" : label }));
 
   useEffect(() => {
     document.title = "Modelos | DocusPsi";
   }, []);
 
-  const filtered = templates?.filter((t) => {
+  const filtered = templates?.filter((t: Template) => {
     if (!t.isActive) return false;
+    const haystack = [t.name, t.description, t.category, t.modality, t.audience, t.useCase, ...(t.tags || [])].filter(Boolean).join(" ").toLowerCase();
     if (
       search &&
-      !t.name.toLowerCase().includes(search.toLowerCase()) &&
-      !t.description?.toLowerCase().includes(search.toLowerCase())
+      !haystack.includes(search.toLowerCase())
     )
       return false;
-    if (activeType !== "todos" && t.type !== activeType) return false;
+    if (category !== "todos" && (t.category || TYPE_LABELS[t.type] || t.type) !== category) return false;
+    if (modality !== "todos" && (t.modality || "Não se aplica") !== modality) return false;
+    if (audience !== "todos" && (t.audience || "Não se aplica") !== audience) return false;
+    if (useCase !== "todos" && (t.useCase || "Atendimento individual") !== useCase) return false;
     return true;
   });
 
@@ -86,10 +108,10 @@ export default function TemplatesList() {
         </CardContent>
       </Card>
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1 max-w-sm">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="relative min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
+          <AppInput
             placeholder="Buscar modelos..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -104,19 +126,15 @@ export default function TemplatesList() {
             </button>
           )}
         </div>
-        <div className="flex flex-wrap gap-2">
-          {allTypes.map((type) => (
-            <Button
-              key={type}
-              variant={activeType === type ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActiveType(type)}
-              className="capitalize"
-            >
-              {type === "todos" ? "Todos" : TYPE_LABELS[type] || type}
-            </Button>
-          ))}
-        </div>
+        <AppSelect
+          value={category}
+          onValueChange={setCategory}
+          placeholder="Categoria"
+          options={categoryOptions}
+        />
+        <AppSelect value={modality} onValueChange={setModality} placeholder="Modalidade" options={modalityOptions} />
+        <AppSelect value={audience} onValueChange={setAudience} placeholder="Público" options={audienceOptions} />
+        <AppSelect value={useCase} onValueChange={setUseCase} placeholder="Uso" options={useOptions} />
       </div>
 
       {isError ? (
@@ -158,7 +176,10 @@ export default function TemplatesList() {
               className="mt-4"
               onClick={() => {
                 setSearch("");
-                setActiveType("todos");
+                setCategory("todos");
+                setModality("todos");
+                setAudience("todos");
+                setUseCase("todos");
               }}
             >
               Limpar filtros
@@ -181,7 +202,7 @@ export default function TemplatesList() {
                     className={`text-xs font-medium ${TYPE_COLORS[template.type] || "bg-gray-100 text-gray-800"}`}
                     variant="secondary"
                   >
-                    {TYPE_LABELS[template.type] || template.type}
+                    {template.category || TYPE_LABELS[template.type] || template.type}
                   </Badge>
                 </div>
                 <CardTitle className="text-lg leading-snug">{template.name}</CardTitle>
@@ -189,14 +210,19 @@ export default function TemplatesList() {
                   {template.description}
                 </CardDescription>
                 <div className="mt-4 flex flex-wrap gap-2">
+                  {(template.tags || []).slice(0, 3).map((tag) => (
+                    <Badge key={tag} variant="secondary" className="bg-[#FAF7F0] text-[#111827]">
+                      {tag}
+                    </Badge>
+                  ))}
                   <Badge variant="outline" className="text-xs">
-                    {template.fieldsSchema?.fields?.length || 0} campos guiados
+                    {template.structure?.length || 0} seções
                   </Badge>
                   <Badge variant="outline" className="text-xs">
-                    Prévia A4
+                    {template.fieldsSchema?.fields?.length || 0} campos
                   </Badge>
                   <Badge variant="outline" className="text-xs">
-                    PDF
+                    Editável
                   </Badge>
                 </div>
               </CardHeader>
@@ -213,6 +239,14 @@ export default function TemplatesList() {
                       description: template.description,
                       type: template.type,
                       fieldCount: template.fieldsSchema?.fields?.length || 0,
+                      category: template.category,
+                      structure: template.structure,
+                      usageNotes: template.usageNotes,
+                      tags: template.tags,
+                      modality: template.modality,
+                      audience: template.audience,
+                      useCase: template.useCase,
+                      contentHtml: template.contentHtml,
                     })
                   }
                 >

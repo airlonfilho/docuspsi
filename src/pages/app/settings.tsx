@@ -20,9 +20,16 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useRef, useState } from "react";
 import { FileText, PenLine, Upload, X, User } from "lucide-react";
+import {
+  AppColorPicker,
+  AppCpfInput,
+  AppPhoneInput,
+  AppSelect,
+  AppTextarea,
+  BRAZIL_STATE_OPTIONS,
+} from "@/components/app-form";
 
 const profileSchema = z.object({
   fullName: z.string().min(2, "Nome é obrigatório"),
@@ -454,7 +461,7 @@ export default function Settings() {
                     <FormField control={profileForm.control} name="documentNumber" render={({ field }) => (
                       <FormItem>
                         <FormLabel>CPF/CNPJ</FormLabel>
-                        <FormControl><Input {...field} /></FormControl>
+                        <FormControl><AppCpfInput value={field.value} onChange={field.onChange} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -468,7 +475,7 @@ export default function Settings() {
                     <FormField control={profileForm.control} name="phone" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Telefone / WhatsApp</FormLabel>
-                        <FormControl><Input {...field} /></FormControl>
+                        <FormControl><AppPhoneInput value={field.value} onChange={field.onChange} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -489,7 +496,7 @@ export default function Settings() {
                     <FormField control={profileForm.control} name="state" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Estado (UF) *</FormLabel>
-                        <FormControl><Input {...field} maxLength={2} /></FormControl>
+                        <FormControl><AppSelect value={field.value} onValueChange={field.onChange} placeholder="Selecione a UF" options={BRAZIL_STATE_OPTIONS} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -539,17 +546,7 @@ export default function Settings() {
                     <FormField control={documentForm.control} name="documentPrimaryColor" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Cor Principal</FormLabel>
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="color"
-                            value={field.value || "#8B5CF6"}
-                            onChange={e => field.onChange(e.target.value)}
-                            className="h-10 w-14 rounded border cursor-pointer p-0.5"
-                          />
-                          <FormControl>
-                            <Input {...field} placeholder="#8B5CF6" className="font-mono" />
-                          </FormControl>
-                        </div>
+                        <FormControl><AppColorPicker value={field.value} onChange={field.onChange} /></FormControl>
                         <FormDescription>Cabeçalho, accent bar e destaques</FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -557,17 +554,7 @@ export default function Settings() {
                     <FormField control={documentForm.control} name="documentSecondaryColor" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Cor Secundária</FormLabel>
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="color"
-                            value={field.value || "#675CF1"}
-                            onChange={e => field.onChange(e.target.value)}
-                            className="h-10 w-14 rounded border cursor-pointer p-0.5"
-                          />
-                          <FormControl>
-                            <Input {...field} placeholder="#675CF1" className="font-mono" />
-                          </FormControl>
-                        </div>
+                        <FormControl><AppColorPicker value={field.value} onChange={field.onChange} /></FormControl>
                         <FormDescription>Badge de tipo do documento</FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -636,7 +623,7 @@ export default function Settings() {
                     <FormItem>
                       <FormLabel>Texto personalizado do rodapé</FormLabel>
                       <FormControl>
-                        <Textarea
+                        <AppTextarea
                           {...field}
                           placeholder="Ex: Atendimento particular — www.meusite.com.br"
                           className="min-h-[80px]"
@@ -739,7 +726,7 @@ export default function Settings() {
                   <FormField control={documentForm.control} name="defaultCancellationPolicy" render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Textarea {...field} placeholder="Sua política de faltas e remarcações..." className="min-h-[100px]" />
+                        <AppTextarea {...field} placeholder="Sua política de faltas e remarcações..." className="min-h-[100px]" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

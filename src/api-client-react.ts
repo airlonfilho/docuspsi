@@ -1,4 +1,5 @@
 import { useMutation, useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import { getLibraryTemplateBySlug, mergeTemplateLibrary } from "@/lib/template-library";
 
 export type PatientBodyServiceType = "online" | "presencial" | "hibrido";
 
@@ -51,18 +52,27 @@ interface Patient {
 
 interface TemplateField {
   key: string;
+  name?: string;
   label: string;
   type: string;
   required?: boolean;
   options?: string[];
 }
 
-interface Template {
+export interface Template {
   id: string;
   name: string;
   slug: string;
   description?: string;
   type: string;
+  category?: string;
+  contentHtml?: string;
+  structure?: string[];
+  usageNotes?: string;
+  modality?: string;
+  audience?: string;
+  useCase?: string;
+  tags?: string[];
   isActive: boolean;
   fieldsSchema: { fields: TemplateField[] };
 }
@@ -94,7 +104,11 @@ interface DbState {
 }
 
 interface QueryOptions {
-  query?: UseQueryOptions<any, any, any, any>;
+  query?: Partial<UseQueryOptions<any, any, any, any>>;
+}
+
+interface ApiRequestOptions extends RequestInit {
+  auth?: boolean;
 }
 
 interface LoginInput {
@@ -251,6 +265,42 @@ interface DashboardStats {
   planDocumentsUsed?: number;
 }
 
+export interface Plan {
+  key: string;
+  name: string;
+  price?: number;
+  currency?: string;
+  interval?: string;
+  features?: string[];
+  stripePriceId?: string;
+  recommended?: boolean;
+}
+
+export interface PlansResponse {
+  plans: Plan[];
+}
+
+export interface Subscription {
+  plan: string;
+  status: string;
+  stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  features: string[];
+}
+
+export interface CurrentSubscriptionResponse {
+  subscription: Subscription;
+}
+
+interface UpgradePlanInput {
+  data: {
+    plan: string;
+    billingCycle: "monthly";
+  };
+}
+
 const DB_KEY = "psidocs:mock-db";
 const TOKEN_KEY = "token";
 const USER_KEY = "user";
@@ -262,7 +312,7 @@ function createSeedDb(): DbState {
   const user: User = {
     id: "user-1",
     name: "Dra. Helena Costa",
-    email: "helena@psidocs.local",
+    email: "helena@docuspsi.local",
     hasProfile: true,
   };
 
@@ -281,8 +331,8 @@ function createSeedDb(): DbState {
     state: "SP",
     address: "Rua Exemplo, 123",
     clinicName: "DocusPsi Clínica",
-    website: "https://psidocs.local",
-    instagram: "@psidocs",
+    website: "https://docuspsi.local",
+    instagram: "@docuspsi",
     defaultCancellationPolicy: "Cancelamentos com 24 horas de antecedência.",
     documentFooterText: "Atendimento psicológico com cuidado e precisão.",
     documentPrimaryColor: "#8B5CF6",
@@ -460,6 +510,7 @@ function buildRenderedContent(input: {
         name: input.profile.fullName || input.profile.name || "",
         crp: input.profile.crp || "",
         role: "Psicóloga",
+        signatureUrl: input.profile.signatureUrl,
       },
       patient: { name: input.patient.fullName, role: "Paciente" },
       city: input.profile.city || "",
@@ -478,11 +529,13 @@ function buildRenderedContent(input: {
       address: input.profile.address,
       website: input.profile.website,
       instagram: input.profile.instagram,
+      signatureUrl: input.profile.signatureUrl,
     },
     issueDate: input.issueDate,
     primaryColor: input.profile.documentPrimaryColor,
     secondaryColor: input.profile.documentSecondaryColor,
     logoUrl: input.profile.logoUrl,
+    signatureUrl: input.profile.signatureUrl,
     footerPrefs: {
       text: input.profile.documentFooterText,
       showGeneratedBy: input.profile.showGeneratedBy ?? true,
@@ -552,19 +605,20 @@ export function getApiBaseUrl() {
   return baseUrl.replace(/\/$/, "");
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
+  const { auth = true, ...fetchOptions } = options;
   const token = await getAuthToken();
-  const headers = new Headers(options.headers);
-  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
-  if (!headers.has("Content-Type") && options.body && !isFormData) {
+  const headers = new Headers(fetchOptions.headers);
+  const isFormData = typeof FormData !== "undefined" && fetchOptions.body instanceof FormData;
+  if (!headers.has("Content-Type") && fetchOptions.body && !isFormData) {
     headers.set("Content-Type", "application/json");
   }
-  if (token) {
+  if (auth && token) {
     headers.set("Authorization", `Bearer ${token}`);
   }
 
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
-    ...options,
+    ...fetchOptions,
     headers,
   });
 
@@ -693,6 +747,14 @@ export function getGetProfileQueryKey() {
 
 export function getGetMeQueryKey() {
   return ["me"] as const;
+}
+
+export function getListPlansQueryKey() {
+  return ["plans"] as const;
+}
+
+export function getCurrentSubscriptionQueryKey() {
+  return ["subscription", "current"] as const;
 }
 
 export function useLogin() {
@@ -827,8 +889,44 @@ export function useLogout() {
   });
 }
 
+export function useListPlans(options?: QueryOptions) {
+  return useQuery<Plan[]>({
+    queryKey: getListPlansQueryKey(),
+    queryFn: async () => {
+      const response = await request<PlansResponse>("/plans", { auth: false });
+      return response.plans;
+    },
+    ...options?.query,
+  });
+}
+
+export function useUpgradePlan() {
+  return useMutation({
+    mutationFn: async ({ data }: UpgradePlanInput) => {
+      return request<{ checkoutUrl: string }>("/plans/upgrade", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+  });
+}
+
+export function useGetCurrentSubscription(options?: QueryOptions) {
+  return useQuery<CurrentSubscriptionResponse>({
+    queryKey: getCurrentSubscriptionQueryKey(),
+    queryFn: async () => request<CurrentSubscriptionResponse>("/subscriptions/current"),
+    ...options?.query,
+  });
+}
+
+export function useOpenBillingPortal() {
+  return useMutation({
+    mutationFn: async () => request<{ portalUrl: string }>("/subscriptions/cancel", { method: "POST" }),
+  });
+}
+
 export function useListPatients(params?: PatientListParams, options?: QueryOptions) {
-  return useQuery({
+  return useQuery<Patient[]>({
     queryKey: getListPatientsQueryKey(params),
     queryFn: async () => request<Patient[]>(`/patients${queryString({ search: params?.search, serviceType: params?.serviceType })}`),
     ...options?.query,
@@ -836,7 +934,7 @@ export function useListPatients(params?: PatientListParams, options?: QueryOptio
 }
 
 export function useGetPatient(patientId: string, options?: QueryOptions) {
-  return useQuery({
+  return useQuery<Patient>({
     queryKey: ["patient", patientId] as const,
     queryFn: async () => request<Patient>(`/patients/${patientId}`),
     enabled: !!patientId,
@@ -875,17 +973,31 @@ export function useDeletePatient() {
 }
 
 export function useListTemplates(options?: QueryOptions) {
-  return useQuery({
+  return useQuery<Template[]>({
     queryKey: ["templates"] as const,
-    queryFn: async () => request<Template[]>("/templates"),
+    queryFn: async () => {
+      try {
+        return mergeTemplateLibrary(await request<Template[]>("/templates")) as Template[];
+      } catch {
+        return mergeTemplateLibrary<Template>([]) as Template[];
+      }
+    },
     ...options?.query,
   });
 }
 
 export function useGetTemplate(templateSlug: string, options?: QueryOptions) {
-  return useQuery({
+  return useQuery<Template>({
     queryKey: ["template", templateSlug] as const,
-    queryFn: async () => request<Template>(`/templates/${templateSlug}`),
+    queryFn: async () => {
+      try {
+        return await request<Template>(`/templates/${templateSlug}`);
+      } catch (error) {
+        const fallback = getLibraryTemplateBySlug(templateSlug);
+        if (fallback) return fallback as Template;
+        throw error;
+      }
+    },
     enabled: !!templateSlug,
     ...options?.query,
   });
@@ -903,7 +1015,7 @@ export function useCreateDocument() {
 }
 
 export function useListDocuments(params?: DocumentListParams, options?: QueryOptions) {
-  return useQuery({
+  return useQuery<DocumentRecord[]>({
     queryKey: ["documents", params?.patientId || "all", params?.templateType || "all", params?.status || "all"] as const,
     queryFn: async () => request<DocumentRecord[]>(`/documents${queryString({ patientId: params?.patientId, templateType: params?.templateType, status: params?.status })}`),
     ...options?.query,
@@ -911,7 +1023,7 @@ export function useListDocuments(params?: DocumentListParams, options?: QueryOpt
 }
 
 export function useGetDocument(documentId: string, options?: QueryOptions) {
-  return useQuery({
+  return useQuery<DocumentRecord>({
     queryKey: getGetDocumentQueryKey(documentId),
     queryFn: async () => request<DocumentRecord>(`/documents/${documentId}`),
     enabled: !!documentId,
@@ -936,7 +1048,7 @@ export function useRevokeDocument() {
 }
 
 export function useGetPublicDocument(token: string, options?: QueryOptions) {
-  return useQuery({
+  return useQuery<DocumentRecord>({
     queryKey: ["public-document", token] as const,
     queryFn: async () => normalizePublicDocument(await request<DocumentRecord | PublicDocumentResponse>(`/public/documents/${token}`)),
     enabled: !!token,
@@ -956,7 +1068,7 @@ export function useAcceptDocument() {
 }
 
 export function useGetKitForm(options?: QueryOptions) {
-  return useQuery({
+  return useQuery<KitFormResponse>({
     queryKey: ["public-kit-form"] as const,
     queryFn: async () => request<KitFormResponse>("/public/kit-form"),
     ...options?.query,
@@ -975,7 +1087,7 @@ export function useCreateLead() {
 }
 
 export function useGetDashboardStats(options?: QueryOptions) {
-  return useQuery({
+  return useQuery<DashboardStats>({
     queryKey: ["dashboard-stats"] as const,
     queryFn: async (): Promise<DashboardStats> => request<DashboardStats>("/dashboard/stats"),
     ...options?.query,
@@ -983,7 +1095,7 @@ export function useGetDashboardStats(options?: QueryOptions) {
 }
 
 export function useGetRecentDocuments(options?: QueryOptions) {
-  return useQuery({
+  return useQuery<DocumentRecord[]>({
     queryKey: ["recent-documents"] as const,
     queryFn: async () => request<DocumentRecord[]>("/dashboard/recent-documents"),
     ...options?.query,

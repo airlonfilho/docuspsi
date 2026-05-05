@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { getApiBaseUrl, useCreateLead, useGetKitForm } from "@/api-client-react";
 import { DocusPsiLogoImage } from "@/components/docuspsi-logo";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { maskPhone } from "@/components/app-form";
 import {
   ArrowRight,
   BadgeCheck,
@@ -26,7 +27,7 @@ import {
 } from "lucide-react";
 
 const C = {
-  bg: "#F7F3EA",
+  bg: "#FFFFFF",
   paper: "#FFFFFF",
   paperMuted: "#FAF7F0",
   border: "#DDD6C7",
@@ -309,10 +310,12 @@ function mapKitSource(value: string) {
     INSTAGRAM: "INSTAGRAM",
     TIKTOK: "TIKTOK",
     REFERRAL: "REFERRAL",
+    GOOGLE: "GOOGLE",
     OTHER: "OTHER",
     Instagram: "INSTAGRAM",
     TikTok: "TIKTOK",
     Indicação: "REFERRAL",
+    Google: "GOOGLE",
     Outro: "OTHER",
   };
   return map[value] || "OTHER";
@@ -325,8 +328,11 @@ function mapProfessionStage(value: string) {
     MORE_THAN_10_PATIENTS: "MORE_THAN_10_PATIENTS",
     CLINIC_TEAM: "CLINIC_TEAM",
     "Ainda não": "NOT_ATTENDING",
+    "Ainda não atendo": "NOT_ATTENDING",
     "Sim, até 10 pacientes": "UP_TO_10_PATIENTS",
+    "Atendo até 10 pacientes": "UP_TO_10_PATIENTS",
     "Sim, mais de 10 pacientes": "MORE_THAN_10_PATIENTS",
+    "Atendo mais de 10 pacientes": "MORE_THAN_10_PATIENTS",
     "Tenho clínica/equipe": "CLINIC_TEAM",
   };
   return map[value] || "NOT_ATTENDING";
@@ -344,6 +350,10 @@ function mapMainPain(value: string) {
     "Termo de consentimento": "CONSENT_TERM",
     Recibo: "RECEIPT",
     "Declaração de comparecimento": "DECLARATION",
+    ONLINE_TERM: "OTHER",
+    MINOR_AUTHORIZATION: "OTHER",
+    "Termo online": "OTHER",
+    "Autorização para menor": "OTHER",
     "Organização por paciente": "PATIENT_ORGANIZATION",
     Outro: "OTHER",
   };
@@ -360,9 +370,9 @@ type KitFieldConfig = {
 };
 
 const fallbackStageOptions: SelectOption[] = [
-  { label: "Ainda não", value: "NOT_ATTENDING" },
-  { label: "Sim, até 10 pacientes", value: "UP_TO_10_PATIENTS" },
-  { label: "Sim, mais de 10 pacientes", value: "MORE_THAN_10_PATIENTS" },
+  { label: "Ainda não atendo", value: "NOT_ATTENDING" },
+  { label: "Atendo até 10 pacientes", value: "UP_TO_10_PATIENTS" },
+  { label: "Atendo mais de 10 pacientes", value: "MORE_THAN_10_PATIENTS" },
   { label: "Tenho clínica/equipe", value: "CLINIC_TEAM" },
 ];
 
@@ -371,6 +381,8 @@ const fallbackMainPainOptions: SelectOption[] = [
   { label: "Termo de consentimento", value: "CONSENT_TERM" },
   { label: "Recibo", value: "RECEIPT" },
   { label: "Declaração de comparecimento", value: "DECLARATION" },
+  { label: "Termo online", value: "ONLINE_TERM" },
+  { label: "Autorização para menor", value: "MINOR_AUTHORIZATION" },
   { label: "Organização por paciente", value: "PATIENT_ORGANIZATION" },
   { label: "Outro", value: "OTHER" },
 ];
@@ -379,6 +391,7 @@ const fallbackSourceOptions: SelectOption[] = [
   { label: "Instagram", value: "INSTAGRAM" },
   { label: "TikTok", value: "TIKTOK" },
   { label: "Indicação", value: "REFERRAL" },
+  { label: "Google", value: "GOOGLE" },
   { label: "Outro", value: "OTHER" },
 ];
 
@@ -386,15 +399,18 @@ const kitOptionLabels: Record<string, string> = {
   INSTAGRAM: "Instagram",
   TIKTOK: "TikTok",
   REFERRAL: "Indicação",
+  GOOGLE: "Google",
   OTHER: "Outro",
-  NOT_ATTENDING: "Ainda não",
-  UP_TO_10_PATIENTS: "Sim, até 10 pacientes",
-  MORE_THAN_10_PATIENTS: "Sim, mais de 10 pacientes",
+  NOT_ATTENDING: "Ainda não atendo",
+  UP_TO_10_PATIENTS: "Atendo até 10 pacientes",
+  MORE_THAN_10_PATIENTS: "Atendo mais de 10 pacientes",
   CLINIC_TEAM: "Tenho clínica/equipe",
   CONTRACT: "Contrato terapêutico",
   CONSENT_TERM: "Termo de consentimento",
   RECEIPT: "Recibo",
   DECLARATION: "Declaração de comparecimento",
+  ONLINE_TERM: "Termo online",
+  MINOR_AUTHORIZATION: "Autorização para menor",
   PATIENT_ORGANIZATION: "Organização por paciente",
 };
 
@@ -603,7 +619,7 @@ function KitLeadForm() {
               WhatsApp
               <input
                 value={form.whatsapp}
-                onChange={(event) => setValue("whatsapp", event.target.value)}
+                onChange={(event) => setValue("whatsapp", maskPhone(event.target.value))}
                 className={inputBase}
                 style={{ borderColor: errors.whatsapp ? C.danger : C.border, background: C.paper }}
                 aria-invalid={Boolean(errors.whatsapp)}
