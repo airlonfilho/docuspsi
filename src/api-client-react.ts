@@ -255,7 +255,7 @@ const DB_KEY = "psidocs:mock-db";
 const TOKEN_KEY = "token";
 const USER_KEY = "user";
 
-let baseUrl = import.meta.env.VITE_API_URL || "/api";
+let baseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_TARGET || "/api";
 let authTokenGetter: (() => Promise<string | null>) | null = null;
 
 function createSeedDb(): DbState {
