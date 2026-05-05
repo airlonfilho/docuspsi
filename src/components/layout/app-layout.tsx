@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/contexts/auth-context";
+import { DocusPsiLogoImage } from "@/components/docuspsi-logo";
 import { useLogout, useGetProfile } from "@workspace/api-client-react";
 import {
   Sidebar,
@@ -49,15 +50,9 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="flex min-h-screen w-full bg-background">
         <Sidebar className="border-r-[#DDD6C7]">
           <SidebarHeader className="h-16 flex items-center justify-center border-b px-3" style={{ borderColor: "#DDD6C7", background: "#FFFFFF" }}>
-            <div className="flex items-center gap-2 w-full rounded-xl bg-white px-2.5 py-2">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xl" style={{ background: "#111111" }}>
-                Ψ
-              </div>
-              <div className="flex min-w-0 flex-col">
-                <span className="text-lg font-bold leading-tight text-foreground">DocusPsi</span>
-                <span className="text-[11px] leading-tight text-muted-foreground">Documentos clínicos</span>
-              </div>
-            </div>
+            <Link href="/app" className="flex w-full items-center rounded-xl px-1.5 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]">
+              <DocusPsiLogoImage variant="horizontal" className="h-10 w-40 max-w-full justify-start" />
+            </Link>
           </SidebarHeader>
           <SidebarContent className="py-4 px-2" style={{ background: "#FFFFFF" }}>
             <SidebarMenu className="gap-1">

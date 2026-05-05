@@ -5,6 +5,7 @@ import { useLocation } from "wouter";
 import { useCreateProfile, useGetMe } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
+import { DocusPsiLogoImage } from "@/components/docuspsi-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,9 +74,7 @@ export default function Onboarding() {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4 py-12">
       <Card className="w-full max-w-2xl shadow-lg border-border">
         <CardHeader className="space-y-1 pb-6 text-center">
-          <div className="mx-auto w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-2xl mb-2">
-            Ψ
-          </div>
+          <DocusPsiLogoImage variant="icon" className="mx-auto mb-2 h-14 w-14" />
           <CardTitle className="text-2xl font-bold tracking-tight">Configure seu Perfil</CardTitle>
           <CardDescription>
             Precisamos de alguns dados profissionais para gerar seus documentos corretamente.

@@ -190,6 +190,28 @@ interface CreateLeadInput {
   };
 }
 
+interface KitFormOption {
+  label: string;
+  value: string;
+}
+
+interface KitFormField {
+  name?: string;
+  key?: string;
+  label?: string;
+  placeholder?: string;
+  required?: boolean;
+  options?: Array<KitFormOption | string>;
+}
+
+interface KitFormResponse {
+  fields?: KitFormField[];
+  buttonText?: string;
+  submitButtonText?: string;
+  successMessage?: string;
+  message?: string;
+}
+
 interface KitLeadResponse {
   message: string;
   leadId?: string;
@@ -930,6 +952,14 @@ export function useAcceptDocument() {
         body: JSON.stringify(data),
       });
     },
+  });
+}
+
+export function useGetKitForm(options?: QueryOptions) {
+  return useQuery({
+    queryKey: ["public-kit-form"] as const,
+    queryFn: async () => request<KitFormResponse>("/public/kit-form"),
+    ...options?.query,
   });
 }
 

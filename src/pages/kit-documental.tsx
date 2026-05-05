@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { useCreateLead } from "@/api-client-react";
+import { getApiBaseUrl, useCreateLead, useGetKitForm } from "@/api-client-react";
+import { DocusPsiLogoImage } from "@/components/docuspsi-logo";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ArrowRight,
   BadgeCheck,
@@ -112,31 +114,12 @@ function SectionHead({ badge, title, sub }: { badge?: string; title: string; sub
   );
 }
 
-function DocusPsiLogo() {
-  return (
-    <div className="flex shrink-0 items-center gap-2.5" aria-label="DocusPsi">
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: C.accentSoft, border: `1px solid ${C.border}` }}>
-        <svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-hidden="true">
-          <path d="M7 3.5h7.5L19 8v12.5H7z" fill="#FFFFFF" stroke={C.primary} strokeWidth="1.6" strokeLinejoin="round" />
-          <path d="M14.5 3.5V8H19" fill="none" stroke={C.primary} strokeWidth="1.6" strokeLinejoin="round" />
-          <path d="M9.4 15.1c1.6 1.4 4.1 1.4 5.7 0" fill="none" stroke={C.accent} strokeWidth="1.7" strokeLinecap="round" />
-          <text x="12" y="13.4" textAnchor="middle" fontSize="7.5" fontWeight="700" fill={C.accent} fontFamily="serif">Ψ</text>
-          <path d="M15.2 18.2l1.4 1.4 3-3.2" fill="none" stroke={C.success} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
-      <span style={{ fontFamily: font.display, fontWeight: 800, fontSize: 18, color: C.primary }}>
-        Docus<span style={{ color: C.accent }}>Psi</span>
-      </span>
-    </div>
-  );
-}
-
 function KitLandingHeader() {
   return (
     <header className="sticky top-0 z-50" style={{ background: "rgba(247,243,234,0.92)", backdropFilter: "blur(8px)", borderBottom: `1px solid ${C.border}` }}>
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <Link href="/" className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]">
-          <DocusPsiLogo />
+          <DocusPsiLogoImage variant="horizontal" className="h-10 w-40" />
         </Link>
         <nav className="flex items-center gap-2 sm:gap-4" aria-label="Navegação do kit">
           <Link href="/" className="hidden rounded-lg px-3 py-2 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] sm:inline-flex" style={{ fontFamily: font.body, color: C.textMuted }}>
@@ -323,6 +306,10 @@ function FieldError({ message }: { message?: string }) {
 
 function mapKitSource(value: string) {
   const map: Record<string, string> = {
+    INSTAGRAM: "INSTAGRAM",
+    TIKTOK: "TIKTOK",
+    REFERRAL: "REFERRAL",
+    OTHER: "OTHER",
     Instagram: "INSTAGRAM",
     TikTok: "TIKTOK",
     Indicação: "REFERRAL",
@@ -333,28 +320,113 @@ function mapKitSource(value: string) {
 
 function mapProfessionStage(value: string) {
   const map: Record<string, string> = {
-    "Ainda não": "NOT_STARTED",
+    NOT_ATTENDING: "NOT_ATTENDING",
+    UP_TO_10_PATIENTS: "UP_TO_10_PATIENTS",
+    MORE_THAN_10_PATIENTS: "MORE_THAN_10_PATIENTS",
+    CLINIC_TEAM: "CLINIC_TEAM",
+    "Ainda não": "NOT_ATTENDING",
     "Sim, até 10 pacientes": "UP_TO_10_PATIENTS",
     "Sim, mais de 10 pacientes": "MORE_THAN_10_PATIENTS",
     "Tenho clínica/equipe": "CLINIC_TEAM",
   };
-  return map[value] || "OTHER";
+  return map[value] || "NOT_ATTENDING";
 }
 
 function mapMainPain(value: string) {
   const map: Record<string, string> = {
+    CONTRACT: "CONTRACT",
+    CONSENT_TERM: "CONSENT_TERM",
+    RECEIPT: "RECEIPT",
+    DECLARATION: "DECLARATION",
+    PATIENT_ORGANIZATION: "PATIENT_ORGANIZATION",
+    OTHER: "OTHER",
     "Contrato terapêutico": "CONTRACT",
     "Termo de consentimento": "CONSENT_TERM",
     Recibo: "RECEIPT",
-    "Declaração de comparecimento": "ATTENDANCE_DECLARATION",
+    "Declaração de comparecimento": "DECLARATION",
     "Organização por paciente": "PATIENT_ORGANIZATION",
     Outro: "OTHER",
   };
   return map[value] || "OTHER";
 }
 
+type SelectOption = { label: string; value: string };
+type KitFieldConfig = {
+  name?: string;
+  key?: string;
+  label?: string;
+  placeholder?: string;
+  options?: Array<SelectOption | string>;
+};
+
+const fallbackStageOptions: SelectOption[] = [
+  { label: "Ainda não", value: "NOT_ATTENDING" },
+  { label: "Sim, até 10 pacientes", value: "UP_TO_10_PATIENTS" },
+  { label: "Sim, mais de 10 pacientes", value: "MORE_THAN_10_PATIENTS" },
+  { label: "Tenho clínica/equipe", value: "CLINIC_TEAM" },
+];
+
+const fallbackMainPainOptions: SelectOption[] = [
+  { label: "Contrato terapêutico", value: "CONTRACT" },
+  { label: "Termo de consentimento", value: "CONSENT_TERM" },
+  { label: "Recibo", value: "RECEIPT" },
+  { label: "Declaração de comparecimento", value: "DECLARATION" },
+  { label: "Organização por paciente", value: "PATIENT_ORGANIZATION" },
+  { label: "Outro", value: "OTHER" },
+];
+
+const fallbackSourceOptions: SelectOption[] = [
+  { label: "Instagram", value: "INSTAGRAM" },
+  { label: "TikTok", value: "TIKTOK" },
+  { label: "Indicação", value: "REFERRAL" },
+  { label: "Outro", value: "OTHER" },
+];
+
+const kitOptionLabels: Record<string, string> = {
+  INSTAGRAM: "Instagram",
+  TIKTOK: "TikTok",
+  REFERRAL: "Indicação",
+  OTHER: "Outro",
+  NOT_ATTENDING: "Ainda não",
+  UP_TO_10_PATIENTS: "Sim, até 10 pacientes",
+  MORE_THAN_10_PATIENTS: "Sim, mais de 10 pacientes",
+  CLINIC_TEAM: "Tenho clínica/equipe",
+  CONTRACT: "Contrato terapêutico",
+  CONSENT_TERM: "Termo de consentimento",
+  RECEIPT: "Recibo",
+  DECLARATION: "Declaração de comparecimento",
+  PATIENT_ORGANIZATION: "Organização por paciente",
+};
+
+function getKitOptionLabel(value: string, label?: string) {
+  return kitOptionLabels[value] || (label && kitOptionLabels[label]) || label || value;
+}
+
+function normalizeOptions(options: KitFieldConfig["options"] | undefined, fallback: SelectOption[]) {
+  if (!options?.length) return fallback;
+  return options.map((option) => {
+    if (typeof option === "string") return { label: getKitOptionLabel(option), value: option };
+    const value = option.value || option.label;
+    return { label: getKitOptionLabel(value, option.label), value };
+  });
+}
+
+function resolveKitDownloadUrl(downloadUrl: string) {
+  if (/^https?:\/\//i.test(downloadUrl)) return downloadUrl;
+  const apiBaseUrl = getApiBaseUrl();
+  if (/^https?:\/\//i.test(apiBaseUrl)) {
+    const base = new URL(apiBaseUrl);
+    if (downloadUrl.startsWith("/api/") && base.pathname.replace(/\/$/, "").endsWith("/api")) {
+      return `${base.origin}${downloadUrl}`;
+    }
+    return `${apiBaseUrl}${downloadUrl.startsWith("/") ? downloadUrl : `/${downloadUrl}`}`;
+  }
+  return downloadUrl;
+}
+
 function KitLeadForm() {
   const [, setLocation] = useLocation();
+  const { data: kitForm } = useGetKitForm({ query: { retry: false } });
   const createLead = useCreateLead();
   const [form, setForm] = useState<FormState>({
     name: "",
@@ -367,6 +439,16 @@ function KitLeadForm() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
+
+  const fields = (kitForm?.fields || []) as KitFieldConfig[];
+  const getField = (...names: string[]) => fields.find((field) => names.includes(field.name || "") || names.includes(field.key || ""));
+  const stageField = getField("professionStage", "stage");
+  const mainPainField = getField("mainPain", "hardestDocument");
+  const sourceField = getField("source");
+  const stageOptions = normalizeOptions(stageField?.options, fallbackStageOptions);
+  const mainPainOptions = normalizeOptions(mainPainField?.options, fallbackMainPainOptions);
+  const sourceOptions = normalizeOptions(sourceField?.options, fallbackSourceOptions);
+  const submitButtonText = kitForm?.buttonText || kitForm?.submitButtonText || "Receber kit gratuito";
 
   const setValue = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -393,7 +475,7 @@ function KitLeadForm() {
     setLoading(true);
 
     try {
-      await createLead.mutateAsync({
+      const response = await createLead.mutateAsync({
         data: {
           name: form.name.trim(),
           email: form.email.trim(),
@@ -404,7 +486,10 @@ function KitLeadForm() {
           consent: form.consent,
         },
       });
-      setLocation("/obrigado-kit");
+      if (response.downloadUrl) {
+        window.location.href = resolveKitDownloadUrl(response.downloadUrl);
+      }
+      window.setTimeout(() => setLocation("/obrigado-kit"), response.downloadUrl ? 900 : 0);
     } catch (error) {
       const status = (error as { status?: number }).status;
       if (status === 404 || status === 405) {
@@ -422,6 +507,58 @@ function KitLeadForm() {
 
   const inputBase = "mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]";
   const labelStyle = { fontFamily: font.body, color: C.text, fontSize: 13, fontWeight: 700 } as React.CSSProperties;
+  const selectTriggerClass = "mt-2 h-auto min-h-[46px] rounded-xl px-4 py-3 text-sm shadow-none focus:ring-2 focus:ring-[#8B5CF6]";
+
+  function KitSelectField({
+    label,
+    value,
+    onChange,
+    options,
+    error,
+    placeholder = "Selecione",
+  }: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    options: SelectOption[];
+    error?: string;
+    placeholder?: string;
+  }) {
+    return (
+      <div>
+        <span style={labelStyle}>{label}</span>
+        <Select value={value || undefined} onValueChange={onChange}>
+          <SelectTrigger
+            className={selectTriggerClass}
+            style={{
+              borderColor: error ? C.danger : C.border,
+              background: C.paper,
+              color: C.text,
+              fontFamily: font.body,
+            }}
+            aria-invalid={Boolean(error)}
+          >
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+          <SelectContent
+            className="rounded-xl border p-1 shadow-lg"
+            style={{ borderColor: C.border, background: C.paper, color: C.text, fontFamily: font.body }}
+          >
+            {options.map((option) => (
+              <SelectItem
+                key={option.value}
+                value={option.value}
+                className="rounded-lg py-2.5 text-sm focus:bg-[#EDE9FE] focus:text-[#6D28D9]"
+              >
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <FieldError message={error} />
+      </div>
+    );
+  }
 
   return (
     <SectionWrap id="formulario">
@@ -431,7 +568,7 @@ function KitLeadForm() {
             <PaperBadge><Mail className="h-3 w-3" />Lista de interesse</PaperBadge>
             <h2 className="mt-4 text-3xl font-bold" style={{ fontFamily: font.display, color: C.text }}>Receba o kit gratuito</h2>
             <p className="mt-3 text-sm leading-relaxed md:text-base" style={{ fontFamily: font.body, color: C.textMuted }}>
-              Preencha seus dados para entrar na lista de interesse e receber o material quando a entrega estiver conectada.
+              Preencha seus dados para liberar o download do Kit Documental para Psicólogas Clínicas.
             </p>
           </div>
           <form className="grid gap-5 px-6 py-6 md:px-8" onSubmit={handleSubmit} noValidate>
@@ -476,41 +613,27 @@ function KitLeadForm() {
               <FieldError message={errors.whatsapp} />
             </label>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-              <label style={labelStyle}>
-                Você já atende pacientes?
-                <select value={form.stage} onChange={(event) => setValue("stage", event.target.value)} className={inputBase} style={{ borderColor: errors.stage ? C.danger : C.border, background: C.paper }} aria-invalid={Boolean(errors.stage)}>
-                  <option value="">Selecione</option>
-                  <option>Ainda não</option>
-                  <option>Sim, até 10 pacientes</option>
-                  <option>Sim, mais de 10 pacientes</option>
-                  <option>Tenho clínica/equipe</option>
-                </select>
-                <FieldError message={errors.stage} />
-              </label>
-              <label style={labelStyle}>
-                Qual documento mais te dá trabalho?
-                <select value={form.hardestDocument} onChange={(event) => setValue("hardestDocument", event.target.value)} className={inputBase} style={{ borderColor: errors.hardestDocument ? C.danger : C.border, background: C.paper }} aria-invalid={Boolean(errors.hardestDocument)}>
-                  <option value="">Selecione</option>
-                  <option>Contrato terapêutico</option>
-                  <option>Termo de consentimento</option>
-                  <option>Recibo</option>
-                  <option>Declaração de comparecimento</option>
-                  <option>Organização por paciente</option>
-                  <option>Outro</option>
-                </select>
-                <FieldError message={errors.hardestDocument} />
-              </label>
-              <label style={labelStyle}>
-                Origem
-                <select value={form.source} onChange={(event) => setValue("source", event.target.value)} className={inputBase} style={{ borderColor: errors.source ? C.danger : C.border, background: C.paper }} aria-invalid={Boolean(errors.source)}>
-                  <option value="">Selecione</option>
-                  <option>Instagram</option>
-                  <option>TikTok</option>
-                  <option>Indicação</option>
-                  <option>Outro</option>
-                </select>
-                <FieldError message={errors.source} />
-              </label>
+              <KitSelectField
+                label="Você já atende pacientes?"
+                value={form.stage}
+                onChange={(value) => setValue("stage", value)}
+                options={stageOptions}
+                error={errors.stage}
+              />
+              <KitSelectField
+                label="Qual documento mais te dá trabalho?"
+                value={form.hardestDocument}
+                onChange={(value) => setValue("hardestDocument", value)}
+                options={mainPainOptions}
+                error={errors.hardestDocument}
+              />
+              <KitSelectField
+                label="Origem"
+                value={form.source}
+                onChange={(value) => setValue("source", value)}
+                options={sourceOptions}
+                error={errors.source}
+              />
             </div>
             <label className="flex items-start gap-3 rounded-xl p-4" style={{ background: C.paperMuted, border: `1px solid ${errors.consent ? C.danger : C.border}`, fontFamily: font.body, color: C.text }}>
               <input
@@ -526,10 +649,10 @@ function KitLeadForm() {
             <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
               <BtnPrimary type="submit" disabled={loading}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                {loading ? "Registrando interesse..." : "Receber kit gratuito"}
+                {loading ? "Liberando download..." : submitButtonText}
               </BtnPrimary>
               <p className="text-xs leading-relaxed" style={{ fontFamily: font.body, color: C.textMuted }}>
-                Tentaremos registrar seu interesse no backend; a entrega automática do kit será conectada separadamente.
+                Após o envio, o download será iniciado pelo link seguro retornado pela API.
               </p>
             </div>
             <FieldError message={errors.submit} />
@@ -606,7 +729,7 @@ function KitFAQ() {
     { q: "O kit é gratuito?", a: "Sim. O kit é gratuito e serve como material inicial de apoio para organização documental." },
     { q: "Os modelos já estão prontos para usar?", a: "Eles são modelos base e editáveis. Revise e adapte antes de emitir qualquer documento." },
     { q: "O kit substitui orientação jurídica, ética ou profissional?", a: "Não. O kit oferece sugestões estruturadas para apoio administrativo. A responsabilidade pelo conteúdo final é da(o) profissional." },
-    { q: "Vou receber o kit por e-mail ou WhatsApp?", a: "Nesta etapa, o formulário registra visualmente seu interesse. A entrega automática será conectada depois, junto com o backend." },
+    { q: "Como recebo o arquivo do kit?", a: "Depois do envio do formulário, o DocusPsi usa o link de download retornado pela API para iniciar o download do arquivo ZIP no navegador." },
     { q: "Qual a diferença entre o kit e o DocusPsi?", a: "O kit entrega modelos base para edição manual. O DocusPsi transforma isso em um fluxo guiado para gerar documentos em PDF, com cabeçalho personalizado, histórico por paciente e aceite por link." },
   ];
   return (
@@ -657,7 +780,7 @@ function KitFooter() {
     <footer className="px-6 py-10" style={{ borderTop: `1px solid ${C.border}` }}>
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 md:grid-cols-2">
         <div>
-          <DocusPsiLogo />
+          <DocusPsiLogoImage variant="horizontal" className="h-10 w-40" />
           <p className="mt-4 max-w-sm text-sm leading-relaxed" style={{ fontFamily: font.body, color: C.textMuted }}>
             Documentos profissionais para psicólogas(os), com modelos guiados, PDF e organização por paciente.
           </p>
@@ -747,7 +870,7 @@ export function BioLinksPage() {
         <div className="w-full max-w-[460px]">
           <PaperCard style={{ padding: 22 }}>
             <div className="mb-6 flex justify-center">
-              <DocusPsiLogo />
+              <DocusPsiLogoImage variant="vertical" className="h-28 w-36" />
             </div>
             <div className="text-center">
               <PaperBadge>DOCUMENTOS PARA PSICÓLOGAS(OS)</PaperBadge>
@@ -881,7 +1004,7 @@ export function KitThankYouPage() {
                 Seu interesse no Kit Documental foi registrado
               </h1>
               <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed" style={{ fontFamily: font.body, color: C.textMuted }}>
-                Obrigado! Em breve você receberá o Kit Documental para Psicólogas Clínicas pelo contato informado.
+                Obrigado! Se o cadastro foi concluído com sucesso, o download do Kit Documental para Psicólogas Clínicas foi iniciado no seu navegador.
               </p>
               <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed" style={{ fontFamily: font.body, color: C.textMuted }}>
                 Enquanto isso, você pode conhecer o DocusPsi e ver como transformar modelos manuais em documentos profissionais em PDF.

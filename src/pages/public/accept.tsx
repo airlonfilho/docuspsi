@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DocumentHtmlPreview } from "@/components/document-html-preview";
 import { parseRenderedContent } from "@/components/document-types";
+import { DocusPsiLogoImage } from "@/components/docuspsi-logo";
 import { getApiBaseUrl } from "@workspace/api-client-react";
 
 const acceptSchema = z.object({
@@ -23,19 +24,6 @@ const acceptSchema = z.object({
   acceptedEmail: z.string().email("E-mail inválido").optional().or(z.literal("")),
   confirmed: z.boolean().refine((value) => value, "Você deve confirmar que leu e aceitou o documento"),
 });
-
-function DocusPsiMark() {
-  return (
-    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-[#DDD6C7] bg-[#EDE9FE]">
-      <svg width="30" height="30" viewBox="0 0 24 24" role="img" aria-hidden="true">
-        <path d="M7 3.5h7.5L19 8v12.5H7z" fill="#FFFFFF" stroke="#111111" strokeWidth="1.6" strokeLinejoin="round" />
-        <path d="M14.5 3.5V8H19" fill="none" stroke="#111111" strokeWidth="1.6" strokeLinejoin="round" />
-        <text x="12" y="13.4" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="#8B5CF6" fontFamily="serif">Ψ</text>
-        <path d="M15.2 18.2l1.4 1.4 3-3.2" fill="none" stroke="#16A34A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </div>
-  );
-}
 
 function StateCard({
   icon,
@@ -174,7 +162,7 @@ export default function PublicAccept() {
     <div className="min-h-screen bg-[#e5e7eb] px-4 py-12">
       <div className="mx-auto max-w-4xl space-y-8">
         <header className="rounded-2xl bg-white p-6 text-center shadow-sm">
-          <DocusPsiMark />
+          <DocusPsiLogoImage variant="icon" className="mx-auto mb-4 h-14 w-14" />
           <h1 className="text-xl font-bold">
             {doc.psychologistName || "Profissional"} enviou um documento para aceite
           </h1>

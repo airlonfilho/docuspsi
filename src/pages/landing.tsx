@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
+import { DocusPsiLogoImage } from "@/components/docuspsi-logo";
 import {
   FileText, FileSignature, Receipt, FileHeart, FilePen,
   Check, ChevronDown, ChevronUp, Menu, X, Download,
@@ -93,30 +94,6 @@ function PaperCard({ children, className = "", style = {} }: { children: React.R
   );
 }
 
-function DocusPsiLogo({ dark = false }: { dark?: boolean }) {
-  const textColor = dark ? "#FFFFFF" : C.primary;
-  const mutedStroke = dark ? "rgba(255,255,255,0.45)" : C.border;
-  return (
-    <div className="flex items-center gap-2.5 shrink-0" aria-label="DocusPsi">
-      <div
-        className="relative flex h-9 w-9 items-center justify-center rounded-xl"
-        style={{ background: C.accentSoft, border: `1px solid ${mutedStroke}` }}
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-hidden="true">
-          <path d="M7 3.5h7.5L19 8v12.5H7z" fill="#FFFFFF" stroke={C.primary} strokeWidth="1.6" strokeLinejoin="round" />
-          <path d="M14.5 3.5V8H19" fill="none" stroke={C.primary} strokeWidth="1.6" strokeLinejoin="round" />
-          <path d="M9.4 15.1c1.6 1.4 4.1 1.4 5.7 0" fill="none" stroke={C.accent} strokeWidth="1.7" strokeLinecap="round" />
-          <text x="12" y="13.4" textAnchor="middle" fontSize="7.5" fontWeight="700" fill={C.accent} fontFamily="serif">Ψ</text>
-          <path d="M15.2 18.2l1.4 1.4 3-3.2" fill="none" stroke={C.success} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
-      <span style={{ fontFamily: font.display, fontWeight: 800, fontSize: 18, color: textColor, lineHeight: 1 }}>
-        Docus<span style={{ color: C.accent }}>Psi</span>
-      </span>
-    </div>
-  );
-}
-
 // ─── 1. Header ────────────────────────────────────────────────────────────────
 function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -135,7 +112,7 @@ function Header() {
     >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link href="/" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6] rounded-xl">
-          <DocusPsiLogo />
+          <DocusPsiLogoImage variant="horizontal" className="h-10 w-40" />
         </Link>
 
         {/* Desktop nav */}
@@ -957,7 +934,7 @@ function LandingFooter() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <DocusPsiLogo />
+              <DocusPsiLogoImage variant="horizontal" className="h-10 w-40" />
             </div>
             <p style={{ fontFamily: font.body, color: C.textMuted, fontSize: 13, lineHeight: 1.7, maxWidth: 280 }}>
               Documentos profissionais para psicólogas(os), com modelos guiados, PDF e organização por paciente.

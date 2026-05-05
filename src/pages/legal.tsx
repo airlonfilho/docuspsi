@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
+import { DocusPsiLogoImage } from "@/components/docuspsi-logo";
 import { ArrowLeft, FileText, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 
 const C = {
@@ -20,28 +21,6 @@ const font = {
   body: "Roboto, sans-serif",
   mono: '"PT Mono", monospace',
 };
-
-function DocusPsiLogo() {
-  return (
-    <div className="flex shrink-0 items-center gap-2.5" aria-label="DocusPsi">
-      <div
-        className="flex h-9 w-9 items-center justify-center rounded-xl"
-        style={{ background: C.accentSoft, border: `1px solid ${C.border}` }}
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" role="img" aria-hidden="true">
-          <path d="M7 3.5h7.5L19 8v12.5H7z" fill="#FFFFFF" stroke={C.primary} strokeWidth="1.6" strokeLinejoin="round" />
-          <path d="M14.5 3.5V8H19" fill="none" stroke={C.primary} strokeWidth="1.6" strokeLinejoin="round" />
-          <path d="M9.4 15.1c1.6 1.4 4.1 1.4 5.7 0" fill="none" stroke={C.accent} strokeWidth="1.7" strokeLinecap="round" />
-          <text x="12" y="13.4" textAnchor="middle" fontSize="7.5" fontWeight="700" fill={C.accent} fontFamily="serif">Ψ</text>
-          <path d="M15.2 18.2l1.4 1.4 3-3.2" fill="none" stroke="#16A34A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
-      <span style={{ fontFamily: font.display, fontWeight: 800, fontSize: 18, color: C.primary }}>
-        Docus<span style={{ color: C.accent }}>Psi</span>
-      </span>
-    </div>
-  );
-}
 
 function LegalShell({
   badge,
@@ -69,7 +48,7 @@ function LegalShell({
       <div className="mx-auto max-w-4xl">
         <header className="mb-8 flex items-center justify-between gap-4">
           <Link href="/" className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]">
-            <DocusPsiLogo />
+            <DocusPsiLogoImage variant="horizontal" className="h-10 w-40" />
           </Link>
           <Link
             href="/"
@@ -107,7 +86,7 @@ function LegalShell({
         </section>
 
         <footer className="mt-8 flex flex-col gap-4 border-t pt-6 text-sm md:flex-row md:items-center md:justify-between" style={{ borderColor: C.border, color: C.textMuted }}>
-          <DocusPsiLogo />
+          <DocusPsiLogoImage variant="horizontal" className="h-10 w-40" />
           <div className="flex flex-wrap gap-4">
             <Link href="/privacidade" className="font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]">Privacidade</Link>
             <Link href="/termos" className="font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B5CF6]">Termos</Link>
